@@ -1,0 +1,13 @@
+version: 1.0
+tasks:
+  - sequential:
+    - print:
+      - "Hello"
+      - "World"
+    - print:
+      - "Hi"
+      - "Universe"
+  - sequential:
+    - print:
+      - "Welcome"
+      - "Everyone"
