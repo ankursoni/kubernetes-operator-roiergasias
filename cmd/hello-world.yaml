@@ -1,13 +1,14 @@
 version: 1.0
-tasks:
+environment:
+  - message: "Welcome to the demo workflow!"
+task:
   - sequential:
     - print:
       - "Hello"
-      - "World"
+      - "World!"
     - print:
       - "Hi"
-      - "Universe"
+      - "Universe!"
   - sequential:
     - print:
-      - "Welcome"
-      - "Everyone"
+      - "env:message"

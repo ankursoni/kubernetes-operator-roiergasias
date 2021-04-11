@@ -3,7 +3,14 @@
 
 This **kubernetes operator** is meant to address a fundamental requirement of any data science / machine learning project running their pipelines on Kubernetes - which is to quickly provision a declarative data pipeline (on demand) for their various project needs using simple kubectl commands. Basically, implementing the concept of **No Ops**.
 
-## Run sample workflow
+---
+
+## Install basic pre-requisites
+### - Install [Go](https://golang.org/doc/install)
+
+---
+
+## Run "Hello world" workflow locally
 ``` SH
 # clone to a local git directory
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
