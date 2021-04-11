@@ -12,8 +12,7 @@ func NewStep(stepType string, stepArguments []interface{}) (step StepWorkflow) {
 	case "print":
 		step = NewPrintStep(stepArguments)
 		return
-	case "default":
+	default:
 		return
 	}
-	return
 }

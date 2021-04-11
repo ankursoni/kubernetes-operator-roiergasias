@@ -21,8 +21,7 @@ func NewTask(taskType string, stepsData map[string]interface{}) (task TaskWorkfl
 		}
 		task = NewSequentialTask(sequentialSteps)
 		return
-	case "default":
+	default:
 		return
 	}
-	return
 }
