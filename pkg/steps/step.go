@@ -1,40 +1,37 @@
 package steps
 
 import (
-	"os"
-	"strings"
+	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
 )
 
 type Step struct {
+	StepArgumentList   []interface{}
+	SetEnvironmentList map[string]interface{}
 }
 
 type StepWorkflow interface {
 	Run()
 }
 
-func NewStep(stepType string, stepArgumentList []interface{}) (step StepWorkflow) {
+func NewStep(stepType string, stepArguments []interface{}, otherStepArguments map[string]interface{}) (step StepWorkflow) {
+	newStep := &Step{}
+	newStep.StepArgumentList = stepArguments
+	for k := range otherStepArguments {
+		switch k {
+		case "set-environment":
+			newStep.SetEnvironmentList = otherStepArguments[k].(map[string]interface{})
+		}
+	}
+
 	switch stepType {
 	case "print":
-		messageList := []string{}
-		for k := range stepArgumentList {
-			messageList = append(messageList, stepArgumentList[k].(string))
-		}
-		messageList = ResolveEnvironmentVariables(messageList)
-		step = NewPrintStep(messageList)
+		step = newStep.NewPrintStep()
 		return
 	default:
 		return
 	}
 }
 
-func ResolveEnvironmentVariables(inputList []string) (outputList []string) {
-	outputList = inputList
-	environmentVariablePrefix := "env:"
-	for k := range inputList {
-		if strings.HasPrefix(inputList[k], environmentVariablePrefix) {
-			environmentVariableValue := os.Getenv(strings.TrimPrefix(inputList[k], environmentVariablePrefix))
-			outputList[k] = environmentVariableValue
-		}
-	}
-	return
+func (step *Step) Run() {
+	lib.SetEnvironmentVariables(step.SetEnvironmentList)
 }

@@ -7,8 +7,12 @@ task:
       - "Hello"
       - "World!"
     - print:
-      - "Hi"
-      - "Universe!"
+        - "Hi"
+        - "Universe!"
+      set-environment:
+        - greeting: "Warm greetings!"
   - sequential:
     - print:
       - "env:message"
+    - print:
+      - "env:greeting"
