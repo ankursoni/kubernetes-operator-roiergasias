@@ -8,6 +8,14 @@ https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-
 ``` SH
 cd cmd/machine-learning
 
+# download dataset from kaggle
+kaggle datasets download jsphyg/weather-dataset-rattle-package -o -f weatherAUS.csv
+
+# unzip and delete the downloaded zip file
+unzip -o weatherAUS.csv.zip
+rm -f weatherAUS.csv.zip
+
+# set execute permissions to python script files
 chmod +x *.py
 
 # process data from first argument file saving output in second argument file

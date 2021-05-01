@@ -2,6 +2,7 @@ package lib
 
 import (
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -13,11 +14,12 @@ func SetEnvironmentVariables(inputList map[string]interface{}) {
 
 func ResolveEnvironmentVariables(inputList []string) (outputList []string) {
 	outputList = inputList
-	environmentVariablePrefix := "env:"
+	regExp, _ := regexp.Compile("{{env:[a-zA-Z0-9-_]+}}")
 	for k := range inputList {
-		if strings.HasPrefix(inputList[k], environmentVariablePrefix) {
-			environmentVariableValue := os.Getenv(strings.TrimPrefix(inputList[k], environmentVariablePrefix))
-			outputList[k] = environmentVariableValue
+		matches := regExp.FindAllString(inputList[k], -1)
+		for m := range matches {
+			environmentVariableValue := os.Getenv(strings.TrimPrefix(strings.Trim(matches[m], "{}"), "env:"))
+			inputList[k] = strings.ReplaceAll(inputList[k], matches[m], environmentVariableValue)
 		}
 	}
 	return

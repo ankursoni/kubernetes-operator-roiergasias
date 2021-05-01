@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
 )
@@ -30,7 +31,12 @@ func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
 
 func (executeStep *ExecuteStep) Run() {
 	for command := range executeStep.CommandList {
-		cmd := exec.Command(executeStep.CommandList[command])
+		cmdWithArgs := strings.SplitAfter(executeStep.CommandList[command], " ")
+		for k := range cmdWithArgs {
+			cmdWithArgs[k] = strings.TrimSpace(cmdWithArgs[k])
+		}
+		cmd := exec.Command(cmdWithArgs[0])
+		cmd.Args = cmdWithArgs
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stdout
 
