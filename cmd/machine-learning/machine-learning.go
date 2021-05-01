@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	workflow := workflow.NewWorkflow("./cmd/hello-world.yaml")
+	workflow := workflow.NewWorkflow("./cmd/machine-learning/machine-learning.yaml")
 	workflow.Run()
 }

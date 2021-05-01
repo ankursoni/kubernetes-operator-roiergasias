@@ -27,6 +27,9 @@ func NewStep(stepType string, stepArguments []interface{}, otherStepArguments ma
 	case "print":
 		step = newStep.NewPrintStep()
 		return
+	case "execute":
+		step = newStep.NewExecuteStep()
+		return
 	default:
 		return
 	}

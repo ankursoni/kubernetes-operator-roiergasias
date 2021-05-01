@@ -21,6 +21,6 @@ cd kubernetes-operator-roiergasias
 # download go module dependencies to local cache
 go mod download
 
-# run the sample workflow
-go run ./cmd
+# run the hello world workflow
+go run ./cmd/hello-world
 ```

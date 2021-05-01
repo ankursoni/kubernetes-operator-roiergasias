@@ -1,12 +1,12 @@
 # Process data, train ml model & evaluate ml model
 
 ## Source of inspiration
-Converter the following jupyter notebook to Python scripts:
+Converted the following jupyter notebook to Python scripts:  
 https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-viz#Rain-prediction-in-Australia
 
 ## Steps to run manually
 ``` SH
-cd demo
+cd cmd/machine-learning
 
 chmod +x *.py
 
