@@ -19,7 +19,7 @@ func ResolveEnvironmentVariables(inputList []string) (outputList []string) {
 		matches := regExp.FindAllString(inputList[k], -1)
 		for m := range matches {
 			environmentVariableValue := os.Getenv(strings.TrimPrefix(strings.Trim(matches[m], "{}"), "env:"))
-			inputList[k] = strings.ReplaceAll(inputList[k], matches[m], environmentVariableValue)
+			outputList[k] = strings.ReplaceAll(inputList[k], matches[m], environmentVariableValue)
 		}
 	}
 	return

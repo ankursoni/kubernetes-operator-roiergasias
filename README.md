@@ -21,6 +21,14 @@ cd kubernetes-operator-roiergasias
 # download go module dependencies to local cache
 go mod download
 
+# set execute permissions to go main binary
+chmod +x cmd/main cmd/main.osx
+
 # run the hello world workflow
-go run ./cmd/hello-world
+./cmd/main ./cmd/hello-world/hello-world.yaml
+# for mac osx
+./cmd/main-osx ./cmd/hello-world/hello-world.yaml
 ```
+
+## Run "Machine learning" workflow locally
+Follow this [README](cmd/machine-learning/README.md)

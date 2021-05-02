@@ -1,7 +1,7 @@
 version: 1.0
 
 environment:
-  - path: "cmd/machine-learning"
+  - path: "./cmd/machine-learning"
   - input-data-file: "weatherAUS.csv"
   - processed-data-file: "processed-weatherAUS.csv"
   - ml-model-file: "ml-model.joblib"
