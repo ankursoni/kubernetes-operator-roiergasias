@@ -6,7 +6,9 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
 ---
 
 ## Install basic pre-requisites
-### - Install [Go](https://golang.org/doc/install)
+### - Install [Docker](https://docs.docker.com/get-docker/)
+### - Install [Docker Compose](https://docs.docker.com/compose/install/)
+### - Optionally, install [Go](https://golang.org/doc/install)
 
 ---
 
@@ -22,7 +24,7 @@ cd kubernetes-operator-roiergasias
 go mod download
 
 # set execute permissions to go main binary
-chmod +x cmd/main cmd/main.osx
+chmod +x cmd/main cmd/main-osx
 
 # run the hello world workflow
 ./cmd/main ./cmd/hello-world/hello-world.yaml
