@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: roiergasias-job
-  namespace: roiergasias
+  namespace: {{ .Values.namespace }}
 spec:
   backoffLimit: 3
   template:

@@ -1,3 +1,4 @@
 *.joblib
 *.csv
 *.zip
+*-secret.yaml

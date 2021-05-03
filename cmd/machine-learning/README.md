@@ -22,8 +22,8 @@ pip install pandas sklearn joblib
 ### - Optionally, install [Go](https://golang.org/doc/install)
 ### - Optionally, install [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Docker](https://docs.docker.com/get-docker/)
 ### - Optionally, install [Docker Compose](https://docs.docker.com/compose/install/)
-### - Optionally, install [Helm](https://helm.sh/docs/intro/install/)
 ### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+### - Optionally, install [Helm](https://helm.sh/docs/intro/install/)
 
 ---
 
@@ -81,7 +81,7 @@ chmod +x cmd/main cmd/main-osx
 ```
 
 
-## Steps to manually run go workflow via docker compose
+## Steps to build docker image
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -94,20 +94,27 @@ chmod +x cmd/main cmd/machine-learning/*.py
 
 # build docker image
 docker build -t roiergasias:latest cmd
+```
+
+
+## Steps to manually run go workflow via docker compose (after building docker image as mentioned above)
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
 
 # change to the cmd/machine-leaning directory
 cd cmd/machine-learning
 
 # run docker compose
 docker-compose up
+
+# clean up docker compose
+docker-compose down
 ```
 
 
-## Steps to manually run go workflow via kubernetes helm charts (after trying out via docker compose as mentioned above)
+## Steps to push docker image to docker hub
 ``` SH
-# change to the local git directory
-cd kubernetes-operator-roiergasias
-
 # re-tag local docker image
 docker tag roiergasias:latest docker.io/<REPOSITORY>/roiergasias:latest
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
@@ -120,7 +127,11 @@ docker login
 docker push docker.io/<REPOSITORY>/roiergasias:latest
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
 # docker push docker.io/ankursoni/roiergasias:latest
+```
 
+
+## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
+``` SH
 # create docker hub registry credentials (for pulling container image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
   --version 3.0.0 \
@@ -130,15 +141,44 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
   --set imagePullSecret.username="<USERNAME>" \
   --set imagePullSecret.password="<PASSWORD>"
 # where, <USERNAME> and <PASSWORD> are the credentials for login to docker hub
+```
+
+## Steps to manually run go workflow via kubernetes helm charts (after creating kubernetes secret for docker hub credentials as mentioned above)
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the cmd/machine-leaning directory
+cd cmd/machine-learning
+
+# create a new helm chart values override file: ./helm/roiergasias/values-secret.yaml
+cp ./helm/roiergasias/values.yaml ./helm/roiergasias/values-secret.yaml
+
+# update the values in ./helm/roiergasias/values-secret.yaml using nano or vi editor
+nano ./helm/roiergasias/values-secret.yaml
+# update "image" to be "docker.io/<REPOSITORY>/roiergasias:latest
+#   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+#          "docker.io/ankursoni/roiergasias:latest"
+# update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
+#   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
 # install helm chart for workflow
 helm upgrade -i \
   -n roiergasias \
-  roiergasias ./cmd/machine-learning/helm/roiergasias
+  -f ./helm/roiergasias/values-secret.yaml \
+  roiergasias ./helm/roiergasias
 
-# browse the pod created by the job
+# browse pod created by the job
 kubectl get pods -n roiergasias
 
-# check the pod logs for the output of the workflow
+# check pod logs for the output
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+
+# uninstall helm chart for workflow
+helm uninstall roiergasias -n roiergasias
+```
+
+
+## Steps to run go workflow via kubernetes operator (after creating kubernetes secret for docker hub credentials as mentioned above)
+``` SH
 ```
