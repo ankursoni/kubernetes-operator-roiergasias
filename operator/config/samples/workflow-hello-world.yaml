@@ -1,0 +1,17 @@
+apiVersion: batch.ankursoni.github.io/v1
+kind: Workflow
+metadata:
+  name: hello-world
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello-world
+            image: busybox
+            args:
+            - /bin/sh
+            - -c
+            - date; echo Hello World!
+          restartPolicy: Never

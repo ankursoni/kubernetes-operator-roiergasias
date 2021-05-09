@@ -1,0 +1,16 @@
+domain: ankursoni.github.io
+layout:
+- go.kubebuilder.io/v3
+projectName: roiergasias
+repo: github.com/ankursoni/kubernetes-operator-roiergasias
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ankursoni.github.io
+  group: batch
+  kind: Workflow
+  path: github.com/ankursoni/kubernetes-operator-roiergasias/api/v1
+  version: v1
+version: "3"

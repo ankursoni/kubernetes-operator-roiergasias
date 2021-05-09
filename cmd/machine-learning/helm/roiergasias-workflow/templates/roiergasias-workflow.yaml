@@ -1,0 +1,26 @@
+apiVersion: batch.ankursoni.github.io/v1
+kind: Workflow
+metadata:
+  name: roiergasias-workflow
+  namespace: {{ .Values.namespace }}
+spec:
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          imagePullSecrets:
+            - name: container-registry-secret
+          containers:
+            - name: roiergasias
+              image: docker.io/ankursoni/roiergasias:latest
+              command: ["./cmd/main", "./cmd/machine-learning/machine-learning.yaml"]
+              volumeMounts:
+                - name: machine-learning
+                  mountPath: /root/cmd/machine-learning
+          restartPolicy: Never
+          volumes:
+            - name: machine-learning
+              hostPath:
+                path: {{ .Values.hostPath }}
+                type: Directory

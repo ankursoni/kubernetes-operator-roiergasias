@@ -1,0 +1,4 @@
+apiVersion: v2
+description: Helm chart for roiergasias workflow
+name: roiergasias-workflow
+version: 1.0.0

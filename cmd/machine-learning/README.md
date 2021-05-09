@@ -69,7 +69,7 @@ chmod +x ./*.py
 cd kubernetes-operator-roiergasias
 
 # optionally, download go module dependencies to local cache
-go mod download
+go mod tidy && go mod download
 
 # set execute permissions to go main binary
 chmod +x cmd/main cmd/main-osx
@@ -128,7 +128,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:latest
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
 # docker push docker.io/ankursoni/roiergasias:latest
 ```
-
+> NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials
 
 ## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
 ``` SH
@@ -151,22 +151,22 @@ cd kubernetes-operator-roiergasias
 # change to the cmd/machine-leaning directory
 cd cmd/machine-learning
 
-# create a new helm chart values override file: ./helm/roiergasias/values-secret.yaml
-cp ./helm/roiergasias/values.yaml ./helm/roiergasias/values-secret.yaml
+# create a new helm chart values override file: ./helm/roiergasias-job/values-secret.yaml
+cp ./helm/roiergasias-job/values.yaml ./helm/roiergasias-job/values-secret.yaml
 
-# update the values in ./helm/roiergasias/values-secret.yaml using nano or vi editor
-nano ./helm/roiergasias/values-secret.yaml
+# update the values in ./helm/roiergasias-job/values-secret.yaml using nano or vi editor
+nano ./helm/roiergasias-job/values-secret.yaml
 # update "image" to be "docker.io/<REPOSITORY>/roiergasias:latest
 #   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
 #          "docker.io/ankursoni/roiergasias:latest"
 # update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
 #   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
-# install helm chart for workflow
+# install helm chart for roiergasias job
 helm upgrade -i \
   -n roiergasias \
-  -f ./helm/roiergasias/values-secret.yaml \
-  roiergasias ./helm/roiergasias
+  -f ./helm/roiergasias-job/values-secret.yaml \
+  roiergasias-job ./helm/roiergasias-job
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -174,11 +174,64 @@ kubectl get pods -n roiergasias
 # check pod logs for the output
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
-# uninstall helm chart for workflow
-helm uninstall roiergasias -n roiergasias
+# uninstall helm chart for roiergasias job
+helm uninstall roiergasias-job -n roiergasias
 ```
 
 
-## Steps to run go workflow via kubernetes operator (after creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to manually run go workflow via kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the operator directory
+cd operator
+
+# optionally, download go module dependencies to local cache
+go mod tidy && go mod download
+
+# build the operator docker image and push to docker hub
+make docker-build docker-push IMG=docker.io/<REPOSITORY>/roiergasias:operator
+# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+# make docker-build docker-push IMG=docker.io/ankursoni/roiergasias:operator
+
+# deploy the operator to kubernetes
+make deploy IMG=docker.io/<REPOSITORY>/roiergasias:operator
+# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+make deploy IMG=docker.io/ankursoni/roiergasias:operator
+
+# change to the cmd/machine-leaning directory
+cd ../cmd/machine-learning
+
+# create a new helm chart values override file: ./helm/roiergasias-workflow/values-secret.yaml
+cp ./helm/roiergasias-workflow/values.yaml ./helm/roiergasias-workflow/values-secret.yaml
+
+# update the values in ./helm/roiergasias-workflow/values-secret.yaml using nano or vi editor
+nano ./helm/roiergasias-workflow/values-secret.yaml
+# update "image" to be "docker.io/<REPOSITORY>/roiergasias:latest
+#   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+#          "docker.io/ankursoni/roiergasias:latest"
+# update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
+#   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
+
+# install helm chart for roiergasias job
+helm upgrade -i \
+  -n roiergasias \
+  -f ./helm/roiergasias-workflow/values-secret.yaml \
+  roiergasias-workflow ./helm/roiergasias-workflow
+
+# browse pod created by the job
+kubectl get pods -n roiergasias
+
+# check pod logs for the output
+kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+
+# uninstall helm chart for roiergasias workflow
+helm uninstall roiergasias-workflow -n roiergasias
+
+# change to the operator directory
+cd ../../operator
+
+# undeploy the operator
+make undeploy
 ```
