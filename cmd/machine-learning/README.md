@@ -130,6 +130,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:latest
 ```
 > NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials
 
+
 ## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
 ``` SH
 # create docker hub registry credentials (for pulling container image pushed previously)
@@ -142,6 +143,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
   --set imagePullSecret.password="<PASSWORD>"
 # where, <USERNAME> and <PASSWORD> are the credentials for login to docker hub
 ```
+
 
 ## Steps to manually run go workflow via kubernetes helm charts (after creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
@@ -162,11 +164,17 @@ nano ./helm/roiergasias-job/values-secret.yaml
 # update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
 #   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
-# install helm chart for roiergasias job
-helm upgrade -i \
+# output helm chart template for roiergasias job
+helm template \
   -n roiergasias \
   -f ./helm/roiergasias-job/values-secret.yaml \
-  roiergasias-job ./helm/roiergasias-job
+  roiergasias-job ./helm/roiergasias-job >machine-learning-job.yaml
+
+# explore the contents of the machine-learning-job.yaml
+cat machine-learning-job.yaml
+
+# apply the manifest
+kubectl apply -f machine-learning-job.yaml
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -174,8 +182,8 @@ kubectl get pods -n roiergasias
 # check pod logs for the output
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
-# uninstall helm chart for roiergasias job
-helm uninstall roiergasias-job -n roiergasias
+# delete the manifest
+kubectl delete -f machine-learning-job.yaml
 ```
 
 
@@ -214,11 +222,17 @@ nano ./helm/roiergasias-workflow/values-secret.yaml
 # update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
 #   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
-# install helm chart for roiergasias job
-helm upgrade -i \
+# output helm chart template for roiergasias workflow
+helm template \
   -n roiergasias \
   -f ./helm/roiergasias-workflow/values-secret.yaml \
-  roiergasias-workflow ./helm/roiergasias-workflow
+  roiergasias-workflow ./helm/roiergasias-workflow >machine-learning-workflow.yaml
+
+# explore the contents of the machine-learning-workflow.yaml
+cat machine-learning-workflow.yaml
+
+# apply the manifest
+kubectl apply -f machine-learning-workflow.yaml
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -226,12 +240,79 @@ kubectl get pods -n roiergasias
 # check pod logs for the output
 kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
-# uninstall helm chart for roiergasias workflow
-helm uninstall roiergasias-workflow -n roiergasias
+# delete the manifest
+kubectl delete -f machine-learning-workflow.yaml
 
 # change to the operator directory
 cd ../../operator
 
 # undeploy the operator
 make undeploy
+```
+
+
+## Steps to provision AWS infrastructure
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the infra/aws directory
+cd infra/aws
+
+# create a new terraform values override file: ./values-secret.tfvars
+cp ./values.tfvars ./values-secret.tfvars
+
+# substitute the value for <PREFIX> by replacing PLACEHOLDER in the following command:
+# PLACEHOLDER e.g. "roiergasias" or "workflow" etc.
+sed -i 's|<PREFIX>|PLACEHOLDER|g' ./values-secret.tfvars
+
+# substitute the value for <ENVIRONMENT> by replacing PLACEHOLDER in the command
+# PLACEHOLDER e.g. "demo" or "play" or "poc" or "dev" or "test" etc.
+sed -i 's|<ENVIRONMENT>|PLACEHOLDER|g' ./values-secret.tfvars
+
+# substitute the value for <REGION> by replacing PLACEHOLDER in the command
+# PLACEHOLDER e.g. "ap-southeast-2" for Sydney or "ap-southeast-1" for Singapore or "us-east-1" for North Virginia etc.
+# Browse https://aws.amazon.com/about-aws/global-infrastructure/regions_az/ for more regions
+# run this to know more: "aws ec2 describe-regions -o table"
+sed -i 's|<REGION>|PLACEHOLDER|g' ./values-secret.tfvars
+
+# substitute the value for <NODE_COUNT> by replacing PLACEHOLDER in the command
+# PLACEHOLDER e.g. 1
+sed -i 's|<NODE_COUNT>|PLACEHOLDER|g' ./values-secret.tfvars
+
+# verify the ./values-secret.tfvars file by displaying its content
+cat ./values-secret.tfvars
+
+# output should be something like this
+prefix="roiergasias"
+environment="demo"
+region="ap-southeast-2"
+node_count=1
+
+# if there is a correction needed then use text editor 'nano' to update the file and then press ctrl+x after you are done editing
+nano ./values-secret.tfvars
+
+# initialise terraform providers
+terraform init
+
+# execute infrastructure provisioning command
+terraform apply -var-file=values-secret.tfvars
+
+# get kubectl credentials
+aws eks update-kubeconfig --region <REGION> --name <PREFIX>-<ENVIRONMENT>-eks01
+# for e.g., aws eks update-kubeconfig --region ap-southeast-2 --name roiergasias-demo-eks01
+
+# patch coredns to use fargate
+kubectl patch deployment coredns -n kube-system --type json \
+-p='[{"op": "remove", "path": "/spec/template/metadata/annotations/eks.amazonaws.com~1compute-type"}]'
+```
+
+
+## Steps to automatically run go workflow via kubernetes operator (after provisioning AWS infrastructure as mentioned above)
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the cmd/machine-leaning directory
+cd ../cmd/machine-learning
 ```

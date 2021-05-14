@@ -1,4 +1,5 @@
 *.joblib
 *.csv
 *.zip
-*-secret.yaml
+machine-learning-job.yaml
+machine-learning-workflow.yaml
