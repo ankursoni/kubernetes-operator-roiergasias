@@ -1,4 +1,4 @@
-# Process data, train ml model & evaluate ml model
+# Process data, train ml model & evaluate ml model locally
 
 
 ## Source of inspiration
@@ -89,11 +89,11 @@ cd kubernetes-operator-roiergasias
 # copy kaggle api credentials from ~/.kaggle
 cp ~/.kaggle/kaggle.json cmd/
 
-# set execute permissions to go main binary and python scripts
-chmod +x cmd/main cmd/machine-learning/*.py
+# set execute permissions to go main binary
+chmod +x cmd/main
 
 # build docker image
-docker build -t roiergasias:latest cmd
+docker build -t roiergasias:local cmd
 ```
 
 
@@ -116,24 +116,24 @@ docker-compose down
 ## Steps to push docker image to docker hub
 ``` SH
 # re-tag local docker image
-docker tag roiergasias:latest docker.io/<REPOSITORY>/roiergasias:latest
+docker tag roiergasias:local docker.io/<REPOSITORY>/roiergasias:local
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-# docker tag roiergasias:latest docker.io/ankursoni/roiergasias:latest
+# docker tag roiergasias:local docker.io/ankursoni/roiergasias:local
 
 # login to docker hub
 docker login
 
 # push the docker image to docker hub
-docker push docker.io/<REPOSITORY>/roiergasias:latest
+docker push docker.io/<REPOSITORY>/roiergasias:local
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-# docker push docker.io/ankursoni/roiergasias:latest
+# docker push docker.io/ankursoni/roiergasias:local
 ```
 > NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials
 
 
 ## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
 ``` SH
-# create docker hub registry credentials (for pulling container image pushed previously)
+# create docker hub registry credentials (for pulling docker image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
   --version 3.0.0 \
   --create-namespace -n roiergasias \
@@ -145,7 +145,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to manually run go workflow via kubernetes helm charts (after creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to manually run go workflow via kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -158,9 +158,9 @@ cp ./helm/roiergasias-job/values.yaml ./helm/roiergasias-job/values-secret.yaml
 
 # update the values in ./helm/roiergasias-job/values-secret.yaml using nano or vi editor
 nano ./helm/roiergasias-job/values-secret.yaml
-# update "image" to be "docker.io/<REPOSITORY>/roiergasias:latest
+# update "image" to be "docker.io/<REPOSITORY>/roiergasias:local"
 #   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-#          "docker.io/ankursoni/roiergasias:latest"
+#          "docker.io/ankursoni/roiergasias:local"
 # update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
 #   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
@@ -168,13 +168,13 @@ nano ./helm/roiergasias-job/values-secret.yaml
 helm template \
   -n roiergasias \
   -f ./helm/roiergasias-job/values-secret.yaml \
-  roiergasias-job ./helm/roiergasias-job >machine-learning-job.yaml
+  roiergasias-job ./helm/roiergasias-job >machine-learning-job-manifest.yaml
 
-# explore the contents of the machine-learning-job.yaml
-cat machine-learning-job.yaml
+# explore the contents of the machine-learning-job-manifest.yaml
+cat machine-learning-job-manifest.yaml
 
 # apply the manifest
-kubectl apply -f machine-learning-job.yaml
+kubectl apply -f machine-learning-job-manifest.yaml
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -183,7 +183,7 @@ kubectl get pods -n roiergasias
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # delete the manifest
-kubectl delete -f machine-learning-job.yaml
+kubectl delete -f machine-learning-job-manifest.yaml
 ```
 
 
@@ -206,7 +206,7 @@ make docker-build docker-push IMG=docker.io/<REPOSITORY>/roiergasias:operator
 # deploy the operator to kubernetes
 make deploy IMG=docker.io/<REPOSITORY>/roiergasias:operator
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-make deploy IMG=docker.io/ankursoni/roiergasias:operator
+# make deploy IMG=docker.io/ankursoni/roiergasias:operator
 
 # change to the cmd/machine-leaning directory
 cd ../cmd/machine-learning
@@ -216,9 +216,9 @@ cp ./helm/roiergasias-workflow/values.yaml ./helm/roiergasias-workflow/values-se
 
 # update the values in ./helm/roiergasias-workflow/values-secret.yaml using nano or vi editor
 nano ./helm/roiergasias-workflow/values-secret.yaml
-# update "image" to be "docker.io/<REPOSITORY>/roiergasias:latest
+# update "image" to be "docker.io/<REPOSITORY>/roiergasias:local"
 #   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-#          "docker.io/ankursoni/roiergasias:latest"
+#          "docker.io/ankursoni/roiergasias:local"
 # update "hostPath" to be the full path of the local git clone directory + "/cmd/machine-learning", for e.g.,
 #   "/Users/ankursoni/go/src/github.com/ankursoni/kubernetes-operator-roiergasias/cmd/machine-learning"
 
@@ -226,13 +226,13 @@ nano ./helm/roiergasias-workflow/values-secret.yaml
 helm template \
   -n roiergasias \
   -f ./helm/roiergasias-workflow/values-secret.yaml \
-  roiergasias-workflow ./helm/roiergasias-workflow >machine-learning-workflow.yaml
+  roiergasias-workflow ./helm/roiergasias-workflow >machine-learning-workflow-manifest.yaml
 
-# explore the contents of the machine-learning-workflow.yaml
-cat machine-learning-workflow.yaml
+# explore the contents of the machine-learning-workflow-manifest.yaml
+cat machine-learning-workflow-manifest.yaml
 
 # apply the manifest
-kubectl apply -f machine-learning-workflow.yaml
+kubectl apply -f machine-learning-workflow-manifest.yaml
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -241,7 +241,7 @@ kubectl get pods -n roiergasias
 kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # delete the manifest
-kubectl delete -f machine-learning-workflow.yaml
+kubectl delete -f machine-learning-workflow-manifest.yaml
 
 # change to the operator directory
 cd ../../operator
@@ -249,6 +249,11 @@ cd ../../operator
 # undeploy the operator
 make undeploy
 ```
+
+
+
+
+# Process data, train ml model & evaluate ml model in AWS
 
 
 ## Steps to provision AWS infrastructure
@@ -308,11 +313,117 @@ kubectl patch deployment coredns -n kube-system --type json \
 ```
 
 
-## Steps to automatically run go workflow via kubernetes operator (after provisioning AWS infrastructure as mentioned above)
+## Steps to build docker image for AWS
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
+# copy kaggle api credentials from ~/.kaggle
+cp ~/.kaggle/kaggle.json cmd/
+
+# copy aws cli credentials from ~/.aws
+cp -RP ~/.aws cmd/.aws/
+
+# set execute permissions to go main binary
+chmod +x cmd/main
+
+# build docker image
+docker build -t roiergasias:aws -f cmd/Dockerfile-AWS cmd
+```
+
+
+## Steps to push docker image to docker hub
+``` SH
+# re-tag local docker image
+docker tag roiergasias:aws docker.io/<REPOSITORY>/roiergasias:aws
+# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+# docker tag roiergasias:aws docker.io/ankursoni/roiergasias:aws
+
+# login to docker hub
+docker login
+
+# push the docker image to docker hub
+docker push docker.io/<REPOSITORY>/roiergasias:aws
+# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+# docker push docker.io/ankursoni/roiergasias:aws
+```
+> NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials and aws cli credentials
+
+
+## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
+``` SH
+# create docker hub registry credentials (for pulling docker image pushed previously)
+helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
+  --version 3.0.0 \
+  --create-namespace -n roiergasias \
+  --set imagePullSecret.registryURL="docker.io" \
+  --set imagePullSecret.secretName="container-registry-secret" \
+  --set imagePullSecret.username="<USERNAME>" \
+  --set imagePullSecret.password="<PASSWORD>"
+# where, <USERNAME> and <PASSWORD> are the credentials for login to docker hub
+```
+
+
+## Steps to manually run go workflow via kubernetes operator (after provisioning AWS infrastructure and pushing docker image for AWS as mentioned above)
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the operator directory
+cd operator
+
+# deploy the operator to kubernetes
+make deploy IMG=docker.io/ankursoni/roiergasias-operator:latest
+
 # change to the cmd/machine-leaning directory
 cd ../cmd/machine-learning
+
+# upload the workflow yaml and python script files
+# assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
+aws s3 cp process-data.py s3://roiergasias-demo-s3b01/
+aws s3 cp train-model.py s3://roiergasias-demo-s3b01/
+aws s3 cp evaluate-model.py s3://roiergasias-demo-s3b01/
+
+# create a new helm chart values override file: ./helm/roiergasias-aws/values-secret.yaml
+cp ./helm/roiergasias-aws/values.yaml ./helm/roiergasias-aws/values-secret.yaml
+
+# update the values in ./helm/roiergasias-aws/values-secret.yaml using nano or vi editor
+nano ./helm/roiergasias-aws/values-secret.yaml
+# update "image" to be "docker.io/<REPOSITORY>/roiergasias:local"
+#   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
+#          "docker.io/ankursoni/roiergasias:local"
+# update "s3URI" to be "s3://<PREFIX>-<ENVIRONMENT>-s3b01/",
+#   where, <PREFIX> and <ENVIRONMENT> were set in the infra/aws/values-secret.tfvars, for e.g.,
+#          "s3://roiergasias-demo-s3b01/"
+# update "enablePersistentVolume" to be either 0 or 1 to turn OFF or ON the persistent volume from elastic file system (EFS)
+# update "efsId" by running the command and copying the second value from output:
+#   aws --region <REGION> efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep <PREFIX>-<ENVIRONMENT>-efs01, for e.g.,
+# aws --region ap-southeast-2 efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep roiergasias-demo-efs01
+
+# output helm chart template for roiergasias aws
+helm template \
+  -n roiergasias \
+  -f ./helm/roiergasias-aws/values-secret.yaml \
+  roiergasias-aws ./helm/roiergasias-aws >machine-learning-aws-manifest.yaml
+
+# explore the contents of the machine-learning-aws-manifest.yaml
+cat machine-learning-aws-manifest.yaml
+
+# apply the manifest
+kubectl apply -f machine-learning-aws-manifest.yaml
+
+# browse pod created by the job
+kubectl get pods -n roiergasias
+
+# check pod logs for the output
+kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+
+# delete the manifest
+kubectl delete -f machine-learning-aws-manifest.yaml
+
+# change to the operator directory
+cd ../../operator
+
+# undeploy the operator
+make undeploy
 ```

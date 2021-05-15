@@ -1,5 +1,4 @@
 *.joblib
 *.csv
 *.zip
-machine-learning-job.yaml
-machine-learning-workflow.yaml
+machine-learning-*-manifest.yaml

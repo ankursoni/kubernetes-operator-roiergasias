@@ -18,3 +18,7 @@ resource "aws_efs_mount_target" "emt02" {
   subnet_id       = module.vpc.private_subnets[1]
   security_groups = [aws_security_group.sg01.id]
 }
+
+output "efs_id" {
+  value = aws_efs_file_system.efs01.id
+}
