@@ -19,13 +19,13 @@ spec:
                 - name: s3-bucket-uri
                   value: "{{ .Values.aws.s3URI }}"
               volumeMounts:
-                - name: machine-learning-yaml
+                - name: yaml
                   mountPath: /root/cmd/machine-learning
                 {{- if .Values.aws.enablePersistentVolume }}
-                - name: machine-learning-pvc
+                - name: pvc
                   mountPath: /root/cmd/machine-learning-output
                 {{- else }}
-                - name: machine-learning-ed
+                - name: ed
                   mountPath: /root/cmd/machine-learning-output
                 {{- end }}
               resources:
@@ -37,14 +37,14 @@ spec:
                   cpu: "1000m"
           restartPolicy: Never
           volumes:
-            - name: machine-learning-yaml
+            - name: yaml
               configMap:
-                name: machine-learning-cm
+                name: machine-learning-aws
             {{- if .Values.aws.enablePersistentVolume }}
-            - name: machine-learning-pvc
+            - name: pvc
               persistentVolumeClaim:
                 claimName: machine-learning-pvc
             {{- else }}
-            - name: machine-learning-ed
+            - name: ed
               emptyDir: {}
             {{- end }}

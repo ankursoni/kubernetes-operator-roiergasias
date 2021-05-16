@@ -10,3 +10,4 @@ WORKDIR /root
 COPY ./kaggle.json ./.kaggle/
 COPY ./.aws/ ./.aws/
 COPY ./main ./cmd/
+RUN chmod 0600 ./.kaggle/kaggle.json

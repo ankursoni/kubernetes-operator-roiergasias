@@ -395,7 +395,8 @@ nano ./helm/roiergasias-aws/values-secret.yaml
 # update "s3URI" to be "s3://<PREFIX>-<ENVIRONMENT>-s3b01/",
 #   where, <PREFIX> and <ENVIRONMENT> were set in the infra/aws/values-secret.tfvars, for e.g.,
 #          "s3://roiergasias-demo-s3b01/"
-# update "enablePersistentVolume" to be either 0 or 1 to turn OFF or ON the persistent volume from elastic file system (EFS)
+# update "enablePersistentVolume" to be either 0 (default) or 1 to turn OFF or ON the persistent volume from elastic file system (EFS)
+#   it gives persistence to the data written by steps in the workflow. Regardless of value, each sequential task syncs up to the S3 at the end of each stage.
 # update "efsId" by running the command and copying the second value from output:
 #   aws --region <REGION> efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep <PREFIX>-<ENVIRONMENT>-efs01, for e.g.,
 # aws --region ap-southeast-2 efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep roiergasias-demo-efs01
