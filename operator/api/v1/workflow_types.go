@@ -25,10 +25,22 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// WorkflowYAMLSpec defines the workflow orchestration
+type WorkflowYAMLSpec struct {
+	// Name of the yaml file without .yaml extension
+	Name string `json:"name,omitempty"`
+
+	// Content of the yaml file
+	YAML string `json:"yaml,omitempty"`
+}
+
 // WorkflowSpec defines the desired state of Workflow
 type WorkflowSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Specifies the workflow yaml file that will orchestrate execution
+	WorkflowYAML WorkflowYAMLSpec `json:"workflowYAML,omitempty"`
 
 	// Specifies the job that will be created when executing a Workflow.
 	JobTemplate batchv1beta1.JobTemplateSpec `json:"jobTemplate"`

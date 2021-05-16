@@ -7066,6 +7066,17 @@ spec:
                     - template
                     type: object
                 type: object
+              workflowYAML:
+                description: Specifies the workflow yaml file that will orchestrate
+                  execution
+                properties:
+                  name:
+                    description: Name of the yaml file without .yaml extension
+                    type: string
+                  yaml:
+                    description: Content of the yaml file
+                    type: string
+                type: object
             required:
             - jobTemplate
             type: object

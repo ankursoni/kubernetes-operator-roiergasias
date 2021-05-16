@@ -18,9 +18,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	kbatch "k8s.io/api/batch/v1"
+	kconfig "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ref "k8s.io/client-go/tools/reference"
@@ -84,6 +86,41 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 
 		return ctrl.Result{}, err
+	}
+
+	if workflow.Spec.WorkflowYAML.Name != "" && workflow.Spec.WorkflowYAML.YAML != "" {
+		constructConfigMapForWorkflow := func(workflow *batch.Workflow) (*kconfig.ConfigMap, error) {
+			name := fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
+
+			configMap := &kconfig.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:      make(map[string]string),
+					Annotations: make(map[string]string),
+					Name:        name,
+					Namespace:   workflow.Namespace,
+				},
+				Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): workflow.Spec.WorkflowYAML.YAML},
+			}
+			if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
+				return nil, err
+			}
+
+			return configMap, nil
+		}
+		// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
+
+		configMap, err := constructConfigMapForWorkflow(&workflow)
+		if err != nil {
+			log.Error(err, "unable to construct configMap from template")
+			return ctrl.Result{}, nil
+		}
+
+		if err := r.Create(ctx, configMap); err != nil {
+			log.Error(err, "unable to create ConfigMap for Workflow", "configMap", configMap)
+			return ctrl.Result{}, err
+		}
+
+		log.V(1).Info("created ConfigMap for Workflow run", "configMap", configMap)
 	}
 
 	constructJobForWorkflow := func(workflow *batch.Workflow) (*kbatch.Job, error) {

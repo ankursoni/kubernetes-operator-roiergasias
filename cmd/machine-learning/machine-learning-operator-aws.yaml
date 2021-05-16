@@ -1,0 +1,81 @@
+apiVersion: batch.ankursoni.github.io/v1
+kind: Workflow
+metadata:
+  name: roiergasias-aws
+spec:
+  workflowYAML:
+    name: machine-learning-yaml
+    yaml: |
+      version: 1.0
+      environment:
+        - path: "./cmd/machine-learning-output"
+        - input-data-file: "weatherAUS.csv"
+        - processed-data-file: "processed-weatherAUS.csv"
+        - ml-model-file: "ml-model.joblib"
+      task:
+        - sequential:
+          - print:
+            - "Started processing data..."
+          - execute:
+            - "aws s3 sync {{env:s3-bucket-uri}} {{env:path}}"
+            - "kaggle datasets download jsphyg/weather-dataset-rattle-package -o -f {{env:input-data-file}} -p {{env:path}}"
+            - "unzip -o {{env:path}}/{{env:input-data-file}}.zip -d {{env:path}}"
+            - "rm -f {{env:path}}/{{env:input-data-file}}.zip"
+            - "chmod +x {{env:path}}/process-data.py"
+            - "{{env:path}}/process-data.py {{env:path}}/{{env:input-data-file}} {{env:path}}/{{env:processed-data-file}}"
+            - "aws s3 sync {{env:path}} {{env:s3-bucket-uri}}"
+          - print:
+            - "Completed processing data."
+        - sequential:
+          - print:
+            - "Started training machine learning model..."
+          - execute:
+            - "aws s3 sync {{env:s3-bucket-uri}} {{env:path}}"
+            - "chmod +x {{env:path}}/train-model.py"
+            - "{{env:path}}/train-model.py {{env:path}}/{{env:processed-data-file}} {{env:path}}/{{env:ml-model-file}}"
+            - "aws s3 sync {{env:path}} {{env:s3-bucket-uri}}"
+          - print:
+            - "Completed training machine learning model."
+        - sequential:
+          - print:
+            - "Started evaluating machine learning model..."
+          - execute:
+            - "aws s3 sync {{env:s3-bucket-uri}} {{env:path}}"
+            - "chmod +x {{env:path}}/evaluate-model.py"
+            - "{{env:path}}/evaluate-model.py {{env:path}}/{{env:processed-data-file}} {{env:path}}/{{env:ml-model-file}}"
+            - "aws s3 sync {{env:path}} {{env:s3-bucket-uri}}"
+          - print:
+            - "Completed evaluating machine learning model."
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          imagePullSecrets:
+            - name: container-registry-secret
+          containers:
+            - name: roiergasias
+              image: docker.io/ankursoni/roiergasias:aws
+              command: ["./cmd/main", "./cmd/machine-learning/machine-learning-yaml.yaml"]
+              env:
+                - name: s3-bucket-uri
+                  value: "s3://roiergasias-demo-s3b01/"
+              volumeMounts:
+                - name: yaml
+                  mountPath: /root/cmd/machine-learning
+                - name: ed
+                  mountPath: /root/cmd/machine-learning-output
+              resources:
+                requests:
+                  memory: "250Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "500Mi"
+                  cpu: "1000m"
+          restartPolicy: Never
+          volumes:
+            - name: yaml
+              configMap:
+                name: roiergasias-aws-machine-learning-yaml
+            - name: ed
+              emptyDir: {}
