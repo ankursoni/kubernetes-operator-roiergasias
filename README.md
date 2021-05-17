@@ -31,6 +31,6 @@ Follow this [README](cmd/machine-learning/README.md)
 ## Install Roiergasias operator
 ``` SH
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.0	\
+  --version 0.1.0 \
   roiergasias-operator roiergasias-operator
 ```
