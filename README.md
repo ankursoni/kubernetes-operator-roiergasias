@@ -114,7 +114,7 @@ Follow this [README](cmd/machine-learning/README.md)
 
 ## Run "Machine learning" workflow in AWS
 ![topology](docs/images/aws-topology.png)
-Follow this [README](cmd/machine-learning/README.md)
+Follow this [README](cmd/machine-learning/README.md#process-data-train-ml-model--evaluate-ml-model-in-aws)
 
 
 ## Install Roiergasias operator
