@@ -23,3 +23,14 @@ chmod +x cmd/main cmd/main-osx
 
 ## Run "Machine learning" workflow locally
 Follow this [README](cmd/machine-learning/README.md)
+
+## Run "Machine learning" workflow in AWS
+![topology](docs/images/aws-topology.png)
+Follow this [README](cmd/machine-learning/README.md)
+
+## Install Roiergasias operator
+``` SH
+helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
+  --version 0.1.0	\
+  roiergasias-operator roiergasias-operator
+```
