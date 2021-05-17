@@ -21,12 +21,15 @@ chmod +x cmd/main cmd/main-osx
 ./cmd/main-osx ./cmd/hello-world/hello-world.yaml
 ```
 
+
 ## Run "Machine learning" workflow locally
 Follow this [README](cmd/machine-learning/README.md)
+
 
 ## Run "Machine learning" workflow in AWS
 ![topology](docs/images/aws-topology.png)
 Follow this [README](cmd/machine-learning/README.md)
+
 
 ## Install Roiergasias operator
 ``` SH
