@@ -37,7 +37,7 @@ helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias
   roiergasias-operator roiergasias-operator
 
 # write the following yaml file
-cat <<EOF> hello-world-manifest.yaml
+cat <<EOF>hello-world-manifest.yaml
 apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
