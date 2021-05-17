@@ -1,0 +1,4 @@
+apiVersion: v2
+description: Helm chart for roiergasias aws
+name: roiergasias-aws
+version: 0.1.0

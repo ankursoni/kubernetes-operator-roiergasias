@@ -1,0 +1,4 @@
+*.joblib
+*.csv
+*.zip
+machine-learning-*-manifest.yaml

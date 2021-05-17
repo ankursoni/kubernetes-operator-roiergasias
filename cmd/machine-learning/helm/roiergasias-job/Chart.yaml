@@ -1,0 +1,4 @@
+apiVersion: v2
+description: Helm chart for roiergasias job
+name: roiergasias-job
+version: 0.1.0

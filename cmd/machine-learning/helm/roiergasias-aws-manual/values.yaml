@@ -1,0 +1,7 @@
+namespace: roiergasias
+image: "docker.io/ankursoni/roiergasias:latest"
+machineLearningAWSYAML: "machine-learning-aws.yaml"
+aws:
+  s3URI: "s3://roiergasias-demo-s3b01/"
+  enablePersistentVolume: 0
+  efsId: "fs-f9e7cfc1"
