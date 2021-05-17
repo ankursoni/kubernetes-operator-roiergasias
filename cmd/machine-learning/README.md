@@ -491,3 +491,21 @@ kubectl delete -f machine-learning-aws-auto-manifest.yaml
 # uninstall the operator
 helm uninstall roiergasias-operator
 ```
+
+
+# Steps to de-provision AWS infrastructure
+``` SH
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# change to the infra/aws directory
+cd infra/aws
+
+# make sure your s3 bucket is empty
+# assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
+aws s3 rm s3://roiergasias-demo-s3b01 --recursive
+
+# execute infrastructure de-provisioning command
+terraform destroy -var-file=values-secret.tfvars
+# sometimes it fails the first time. So, after a delay of 5-10 mins you can repeat the above command as many times until it succeeds
+```
