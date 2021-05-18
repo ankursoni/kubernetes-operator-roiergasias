@@ -71,7 +71,7 @@ spec:
             - name: container-registry-secret
           containers:
             - name: roiergasias
-              image: docker.io/ankursoni/roiergasias:aws
+              image: docker.io/ankursoni/roiergasias-operator:workflow
               command: ["./cmd/main", "./cmd/hello-world/hello-world-yaml.yaml"]
               volumeMounts:
                 - name: yaml
