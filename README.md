@@ -25,12 +25,6 @@ chmod +x cmd/main cmd/main-osx
 
 ## Run "Hello world" workflow via operator in kubernetes
 ``` SH
-# clone to a local git directory, if not already done so
-git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
-
-# change to the local git directory
-cd kubernetes-operator-roiergasias
-
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
   --version 0.1.0 \
@@ -79,17 +73,16 @@ spec:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias:aws
               command: ["./cmd/main", "./cmd/hello-world/hello-world-yaml.yaml"]
-              env:
               volumeMounts:
                 - name: yaml
                   mountPath: /root/cmd/hello-world
               resources:
                 requests:
-                  memory: "250Mi"
-                  cpu: "500m"
+                  memory: "100Mi"
+                  cpu: "100m"
                 limits:
-                  memory: "500Mi"
-                  cpu: "1000m"
+                  memory: "200Mi"
+                  cpu: "200m"
           restartPolicy: Never
           volumes:
             - name: yaml
