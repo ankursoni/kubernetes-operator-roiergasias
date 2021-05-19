@@ -24,6 +24,9 @@ chmod +x cmd/main cmd/main-osx
 
 
 ## Run "Hello world" workflow via operator in kubernetes
+### - Install [Helm](https://helm.sh/docs/intro/install/)
+### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+
 ``` SH
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \

@@ -250,11 +250,22 @@ cd ../../operator
 make undeploy
 ```
 
-
-
+---
 
 # Process data, train ml model & evaluate ml model in AWS
 
+
+## Install pre-requisites
+
+### - Install [Kaggle CLI](https://github.com/Kaggle/kaggle-api)
+#### -- Make sure kaggle is configured with api key in ~/.kaggle/kaggle.json
+[Kaggle API Credentials](https://github.com/Kaggle/kaggle-api#api-credentials)
+### - Install [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+### - Install [Helm](https://helm.sh/docs/intro/install/)
+### - Install [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+### - Optionally, install [Go](https://golang.org/doc/install)
+
+---
 
 ## Steps to provision AWS infrastructure
 ``` SH
@@ -493,7 +504,7 @@ helm uninstall roiergasias-operator
 ```
 
 
-# Steps to de-provision AWS infrastructure
+## Steps to de-provision AWS infrastructure
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
