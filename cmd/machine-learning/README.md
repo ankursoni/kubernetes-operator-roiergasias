@@ -343,7 +343,7 @@ docker build -t roiergasias:aws -f cmd/Dockerfile-AWS cmd
 ```
 
 
-## Steps to push docker image to docker hub
+## Steps to push docker image for AWS to docker hub
 ``` SH
 # re-tag local docker image
 docker tag roiergasias:aws docker.io/<REPOSITORY>/roiergasias:aws
@@ -361,7 +361,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:aws
 > NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials and aws cli credentials
 
 
-## Steps to create kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
+## Steps to create kubernetes secret for docker hub credentials (after pushing docker image for AWS as mentioned above)
 ``` SH
 # create docker hub registry credentials (for pulling docker image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
