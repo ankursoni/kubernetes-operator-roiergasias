@@ -9,8 +9,8 @@ import (
 var _ StepWorkflow = &PrintStep{}
 
 type PrintStep struct {
-	Step
 	MessageList []string
+	Step
 }
 
 func (step *Step) NewPrintStep() (printStep *PrintStep) {
@@ -20,8 +20,8 @@ func (step *Step) NewPrintStep() (printStep *PrintStep) {
 	}
 	messageList = lib.ResolveEnvironmentVariables(messageList)
 	printStep = &PrintStep{
-		Step:        *step,
 		MessageList: messageList,
+		Step:        *step,
 	}
 	return
 }

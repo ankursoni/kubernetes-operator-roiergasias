@@ -12,8 +12,8 @@ import (
 var _ StepWorkflow = &ExecuteStep{}
 
 type ExecuteStep struct {
-	Step
 	CommandList []string
+	Step
 }
 
 func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
@@ -23,8 +23,8 @@ func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
 	}
 	commandList = lib.ResolveEnvironmentVariables(commandList)
 	executeStep = &ExecuteStep{
-		Step:        *step,
 		CommandList: commandList,
+		Step:        *step,
 	}
 	return
 }

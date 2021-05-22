@@ -7,13 +7,14 @@ import (
 var _ TaskWorkflow = &SequentialTask{}
 
 type SequentialTask struct {
-	Task,
 	Steps []steps.StepWorkflow
+	Task
 }
 
-func NewSequentialTask(steps []steps.StepWorkflow) *SequentialTask {
+func NewSequentialTask(steps []steps.StepWorkflow, node string) *SequentialTask {
 	return &SequentialTask{
 		Steps: steps,
+		Task:  Task{Node: node},
 	}
 }
 

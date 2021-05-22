@@ -20,6 +20,31 @@ func NewWorkflow(filePath string) (workflow Workflow) {
 	return
 }
 
+// func ParseTaskList(workflow *Workflow) (taskList map[string][]tasks.TaskWorkflow) {
+// 	taskList = make(map[string][]tasks.TaskWorkflow)
+// 	for i := range workflow.TaskList {
+// 		taskData := workflow.TaskList[i]
+// 		var node string
+// 		var taskType string
+// 		var stepList []interface{}
+// 		for j := range taskData {
+// 			switch j {
+// 			case "node":
+// 				node = taskData[j].(string)
+// 			default:
+// 				taskType = j
+// 				stepList = taskData[j].([]interface{})
+// 			}
+// 		}
+// 		for k := range stepList {
+// 			step := stepList[k].(map[string]interface{})
+// 			task := tasks.NewTask(taskType, step, node)
+// 			append(taskData, task)
+// 		}
+// 	}
+// 	return
+// }
+
 func (workflow *Workflow) Run() {
 	// setup workflow environment
 	for j := range workflow.EnvironmentList {
@@ -31,14 +56,29 @@ func (workflow *Workflow) Run() {
 
 	// setup workflow tasks and steps
 	for i := range workflow.TaskList {
-		taskList := workflow.TaskList[i]
-		for j := range taskList {
-			stepList := taskList[j].([]interface{})
-			for k := range stepList {
-				step := stepList[k].(map[string]interface{})
-				task := tasks.NewTask(j, step)
-				task.Run()
+		taskData := workflow.TaskList[i]
+		var node string
+		var taskType string
+		var stepList []interface{}
+		for j := range taskData {
+			switch j {
+			case "node":
+				node = taskData[j].(string)
+			default:
+				taskType = j
+				stepList = taskData[j].([]interface{})
 			}
 		}
+		for k := range stepList {
+			step := stepList[k].(map[string]interface{})
+			task := tasks.NewTask(taskType, step, node)
+			task.Run()
+		}
 	}
+
+	// // setup workflow tasks and steps
+	// taskList := ParseTaskList(workflow)
+	// for i := range taskList {
+	// 	taskList[i].Run()
+	// }
 }
