@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-logr/logr"
 	kbatch "k8s.io/api/batch/v1"
-	kconfig "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ref "k8s.io/client-go/tools/reference"
@@ -61,7 +61,7 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var workflow batch.Workflow
 	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
-		log.Error(err, "unable to fetch Workflow")
+		log.Error(err, "unable to fetch workflow")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -82,50 +82,59 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		workflow.Status.Job = *jobRef
 
 		if err := r.Status().Update(ctx, &workflow); err != nil {
-			log.Error(err, "unable to update Workflow status")
+			log.Error(err, "unable to update workflow status")
 		}
-
 		return ctrl.Result{}, err
 	}
 
-	if workflow.Spec.WorkflowYAML.Name != "" && workflow.Spec.WorkflowYAML.YAML != "" {
-		constructConfigMapForWorkflow := func(workflow *batch.Workflow) (*kconfig.ConfigMap, error) {
-			name := fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
+	if workflow.Spec.WorkflowYAML.Name == "" || workflow.Spec.WorkflowYAML.YAML == "" {
+		err := fmt.Errorf("empty spec.workflowYAML name or yaml")
+		log.Error(err, "workflowYAM not proper in the spec")
+		return ctrl.Result{}, err
+	}
 
-			configMap := &kconfig.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      make(map[string]string),
-					Annotations: make(map[string]string),
-					Name:        name,
-					Namespace:   workflow.Namespace,
-				},
-				Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): workflow.Spec.WorkflowYAML.YAML},
-			}
-			if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
-				return nil, err
-			}
-
-			return configMap, nil
+	constructConfigMapForWorkflow := func(workflow *batch.Workflow) (*corev1.ConfigMap, error) {
+		name := fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels:      make(map[string]string),
+				Annotations: make(map[string]string),
+				Name:        name,
+				Namespace:   workflow.Namespace,
+			},
+			Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): workflow.Spec.WorkflowYAML.YAML},
 		}
-		// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
-
-		configMap, err := constructConfigMapForWorkflow(&workflow)
-		if err != nil {
-			log.Error(err, "unable to construct configMap from template")
-			return ctrl.Result{}, nil
+		if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
+			return nil, err
 		}
+		return configMap, nil
+	}
+	// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
 
+	configMap, err := constructConfigMapForWorkflow(&workflow)
+	if err != nil {
+		log.Error(err, "unable to construct configMap from template")
+		return ctrl.Result{}, nil
+	}
+
+	existingConfigMap := &corev1.ConfigMap{}
+	r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, existingConfigMap)
+	if existingConfigMap.Name == "" {
 		if err := r.Create(ctx, configMap); err != nil {
-			log.Error(err, "unable to create ConfigMap for Workflow", "configMap", configMap)
+			log.Error(err, "unable to create configMap for workflow", "configMap", configMap)
 			return ctrl.Result{}, err
 		}
-
-		log.V(1).Info("created ConfigMap for Workflow run", "configMap", configMap)
+		log.V(1).Info("created configMap for workflow run", "configMap", configMap)
+	} else {
+		if err := r.Update(ctx, configMap); err != nil {
+			log.Error(err, "unable to update configMap for workflow", "configMap", configMap)
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("updated configMap for workflow run", "configMap", configMap)
 	}
 
 	constructJobForWorkflow := func(workflow *batch.Workflow) (*kbatch.Job, error) {
 		name := workflow.Name
-
 		job := &kbatch.Job{
 			ObjectMeta: metav1.ObjectMeta{
 				Labels:      make(map[string]string),
@@ -141,10 +150,28 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		for k, v := range workflow.Spec.JobTemplate.Labels {
 			job.Labels[k] = v
 		}
+		// find and remove any volumes with name "yaml"
+		for i := 0; i < len(job.Spec.Template.Spec.Volumes); i++ {
+			volume := job.Spec.Template.Spec.Volumes[i]
+			if volume.Name == "yaml" {
+				job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes[:i], job.Spec.Template.Spec.Volumes[i+1:]...)
+				break
+			}
+		}
+		// create volume with name "yaml"
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes,
+			corev1.Volume{
+				Name: "yaml",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: configMap.Name},
+					},
+				},
+			},
+		)
 		if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
 			return nil, err
 		}
-
 		return job, nil
 	}
 	// +kubebuilder:docs-gen:collapse=constructJobForWorkflow
@@ -155,13 +182,21 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	if err := r.Create(ctx, job); err != nil {
-		log.Error(err, "unable to create Job for Workflow", "job", job)
-		return ctrl.Result{}, err
+	existingJob := &kbatch.Job{}
+	r.Get(ctx, client.ObjectKey{Name: job.Name, Namespace: job.Namespace}, existingJob)
+	if existingJob.Name == "" {
+		if err := r.Create(ctx, job); err != nil {
+			log.Error(err, "unable to create job for workflow", "job", job)
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("created job for workflow run", "job", job)
+	} else {
+		if err := r.Update(ctx, job); err != nil {
+			log.Error(err, "unable to update job for workflow", "job", job)
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("updated job for workflow run", "job", job)
 	}
-
-	log.V(1).Info("created Job for Workflow run", "job", job)
-
 	return ctrl.Result{}, nil
 }
 
@@ -179,7 +214,7 @@ func (r *WorkflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a CronJob...
+		// ...make sure it's a Workflow...
 		if owner.APIVersion != apiGVStr || owner.Kind != "Workflow" {
 			return nil
 		}

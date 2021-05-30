@@ -41,7 +41,7 @@ metadata:
   name: roiergasias-kubernetes
 spec:
   workflowYAML:
-    name: hello-world-yaml
+    name: hello-world
     yaml: |
       version: 1.0
 
@@ -75,7 +75,7 @@ spec:
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias-operator:workflow
-              command: ["./cmd/main", "./cmd/hello-world/hello-world-yaml.yaml"]
+              command: ["./cmd/main", "./cmd/hello-world/hello-world.yaml"]
               volumeMounts:
                 - name: yaml
                   mountPath: /root/cmd/hello-world
@@ -87,10 +87,6 @@ spec:
                   memory: "200Mi"
                   cpu: "200m"
           restartPolicy: Never
-          volumes:
-            - name: yaml
-              configMap:
-                name: roiergasias-kubernetes-hello-world-yaml
 EOF
 
 # apply the manifest

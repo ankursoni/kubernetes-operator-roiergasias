@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   workflowYAML:
-    name: machine-learning-yaml
+    name: machine-learning
     yaml: |
 {{ .Files.Get .Values.machineLearningAWSYAML | indent 6 }}
   jobTemplate:
@@ -18,7 +18,7 @@ spec:
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias:aws
-              command: ["./cmd/main", "./cmd/machine-learning/machine-learning-yaml.yaml"]
+              command: ["./cmd/main", "./cmd/machine-learning/machine-learning.yaml"]
               env:
                 - name: s3-bucket-uri
                   value: "{{ .Values.aws.s3URI }}"
@@ -41,9 +41,6 @@ spec:
                   cpu: "1000m"
           restartPolicy: Never
           volumes:
-            - name: yaml
-              configMap:
-                name: roiergasias-aws-machine-learning-yaml
             {{- if .Values.aws.enablePersistentVolume }}
             - name: pvc
               persistentVolumeClaim:

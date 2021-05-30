@@ -1,17 +1,52 @@
 apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
-  name: hello-world
+  name: roiergasias-kubernetes
 spec:
+  workflowYAML:
+    name: hello-world
+    yaml: |
+      version: 1.0
+
+      environment:
+        - welcome: "Welcome to the demo workflow!"
+
+      task:
+        - sequential:
+          - print:
+            - "Hello"
+            - "World!"
+          - print:
+            - "Hi"
+            - "Universe!"
+            set-environment:
+              - greeting: "Warm greetings!"
+
+        - sequential:
+          - print:
+            - "{{env:welcome}}"
+          - print:
+            - "{{env:greeting}}"
+
   jobTemplate:
     spec:
+      backoffLimit: 3
       template:
         spec:
+          imagePullSecrets:
+            - name: container-registry-secret
           containers:
-          - name: hello-world
-            image: busybox
-            args:
-            - /bin/sh
-            - -c
-            - date; echo Hello World!
+            - name: roiergasias
+              image: docker.io/ankursoni/roiergasias-operator:workflow
+              command: ["./cmd/main", "./cmd/hello-world/hello-world.yaml"]
+              volumeMounts:
+                - name: yaml
+                  mountPath: /root/cmd/hello-world
+              resources:
+                requests:
+                  memory: "100Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "200Mi"
+                  cpu: "200m"
           restartPolicy: Never
