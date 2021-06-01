@@ -20,6 +20,11 @@ func NewWorkflow(filePath string) (workflow Workflow) {
 	return
 }
 
+func NewWorkflowFromText(text string) (workflow Workflow) {
+	yaml.Unmarshal([]byte(text), &workflow)
+	return
+}
+
 func (workflow *Workflow) Run() {
 	// setup workflow environment
 	for j := range workflow.EnvironmentList {
@@ -50,4 +55,31 @@ func (workflow *Workflow) Run() {
 			task.Run()
 		}
 	}
+}
+
+func (workflow *Workflow) SplitNodes() (newWorkflowList []Workflow) {
+	// setup workflow tasks and steps
+	for i := range workflow.TaskList {
+		taskData := workflow.TaskList[i]
+		node := ""
+		for j := range taskData {
+			switch j {
+			case "node":
+				node = taskData[j].(string)
+			}
+		}
+
+		if node != "" {
+			newWf := &Workflow{
+				Version:         workflow.Version,
+				EnvironmentList: workflow.EnvironmentList,
+				TaskList:        []map[string]interface{}{workflow.TaskList[i]},
+			}
+			newWorkflowList = append(newWorkflowList, *newWf)
+		} else {
+			newWorkflowList = nil
+			return
+		}
+	}
+	return
 }
