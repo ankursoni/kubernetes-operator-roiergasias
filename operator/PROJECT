@@ -2,7 +2,7 @@ domain: ankursoni.github.io
 layout:
 - go.kubebuilder.io/v3
 projectName: roiergasias
-repo: github.com/ankursoni/kubernetes-operator-roiergasias
+repo: github.com/ankursoni/kubernetes-operator-roiergasias/operator
 resources:
 - api:
     crdVersion: v1
@@ -11,6 +11,6 @@ resources:
   domain: ankursoni.github.io
   group: batch
   kind: Workflow
-  path: github.com/ankursoni/kubernetes-operator-roiergasias/api/v1
+  path: github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1
   version: v1
 version: "3"

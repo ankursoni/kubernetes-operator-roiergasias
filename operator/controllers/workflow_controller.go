@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-
 	"github.com/go-logr/logr"
 	kbatch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -29,7 +28,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	batch "github.com/ankursoni/kubernetes-operator-roiergasias/api/v1"
+	batch "github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1"
 )
 
 // WorkflowReconciler reconciles a Workflow object

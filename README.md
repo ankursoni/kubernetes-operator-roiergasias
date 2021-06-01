@@ -77,6 +77,7 @@ spec:
               image: docker.io/ankursoni/roiergasias-operator:workflow
               command: ["./cmd/main", "./cmd/hello-world/hello-world.yaml"]
               volumeMounts:
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
                   mountPath: /root/cmd/hello-world
               resources:

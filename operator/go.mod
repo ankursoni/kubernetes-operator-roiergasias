@@ -1,4 +1,4 @@
-module github.com/ankursoni/kubernetes-operator-roiergasias
+module github.com/ankursoni/kubernetes-operator-roiergasias/operator
 
 go 1.15
 

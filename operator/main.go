@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	batchv1 "github.com/ankursoni/kubernetes-operator-roiergasias/api/v1"
-	"github.com/ankursoni/kubernetes-operator-roiergasias/controllers"
+	batchv1 "github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1"
+	"github.com/ankursoni/kubernetes-operator-roiergasias/operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
