@@ -12,15 +12,16 @@ type Workflow struct {
 	Version         string                   `yaml:"version"`
 	EnvironmentList []map[string]string      `yaml:"environment"`
 	TaskList        []map[string]interface{} `yaml:"task"`
+	Node            string
 }
 
-func NewWorkflow(filePath string) (workflow Workflow) {
+func NewWorkflow(filePath string) (workflow *Workflow) {
 	bytes, _ := ioutil.ReadFile(filePath)
 	yaml.Unmarshal(bytes, &workflow)
 	return
 }
 
-func NewWorkflowFromText(text string) (workflow Workflow) {
+func NewWorkflowFromText(text string) (workflow *Workflow) {
 	yaml.Unmarshal([]byte(text), &workflow)
 	return
 }
@@ -74,6 +75,7 @@ func (workflow *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 				Version:         workflow.Version,
 				EnvironmentList: workflow.EnvironmentList,
 				TaskList:        []map[string]interface{}{workflow.TaskList[i]},
+				Node:            node,
 			}
 			newWorkflowList = append(newWorkflowList, *newWf)
 		} else {
