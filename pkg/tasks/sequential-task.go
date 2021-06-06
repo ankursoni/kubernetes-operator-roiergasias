@@ -12,6 +12,10 @@ type SequentialTasks struct{}
 
 var _ ISequentialTasks = &SequentialTasks{}
 
+func NewSequentialTasks() ISequentialTasks {
+	return &SequentialTasks{}
+}
+
 func (_ *SequentialTasks) NewSequentialTask(steps []steps.StepWorkflow, node string) *SequentialTask {
 	return &SequentialTask{
 		Steps: steps,

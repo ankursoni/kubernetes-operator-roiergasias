@@ -83,7 +83,7 @@ func (w *Workflow) Run() error {
 }
 
 func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
-	// setup w tasks and steps
+	// setup workflow tasks and steps
 	for i := range w.TaskList {
 		taskData := w.TaskList[i]
 		node := ""

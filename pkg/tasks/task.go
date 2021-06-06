@@ -14,8 +14,8 @@ type Tasks struct {
 
 var _ ITasks = &Tasks{}
 
-func NewTasks() *Tasks {
-	return &Tasks{SequentialTasks: &SequentialTasks{}}
+func NewTasks() ITasks {
+	return &Tasks{SequentialTasks: NewSequentialTasks()}
 }
 
 type ITaskWorkflow interface {
