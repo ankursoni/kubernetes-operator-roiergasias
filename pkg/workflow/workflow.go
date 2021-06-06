@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -8,36 +9,56 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type IWorkflows interface {
+	NewWorkflow(string) (*Workflow, error)
+	NewWorkflowFromText(string) (*Workflow, error)
+}
+
+type Workflows struct {
+	Tasks tasks.ITasks
+}
+
+var _ IWorkflows = &Workflows{}
+
+func NewWorkflows() *Workflows {
+	return &Workflows{Tasks: tasks.NewTasks()}
+}
+
+func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) {
+	bytes, _ := ioutil.ReadFile(filePath)
+	err = yaml.Unmarshal(bytes, &workflow)
+	workflow.Tasks = w.Tasks
+	return
+}
+
+func (w Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
+	err = yaml.Unmarshal([]byte(text), &workflow)
+	workflow.Tasks = w.Tasks
+	return
+}
+
 type Workflow struct {
 	Version         string                   `yaml:"version"`
 	EnvironmentList []map[string]string      `yaml:"environment"`
 	TaskList        []map[string]interface{} `yaml:"task"`
 	Node            string
+	Tasks           tasks.ITasks
 }
 
-func NewWorkflow(filePath string) (workflow *Workflow) {
-	bytes, _ := ioutil.ReadFile(filePath)
-	yaml.Unmarshal(bytes, &workflow)
-	return
-}
-
-func NewWorkflowFromText(text string) (workflow *Workflow) {
-	yaml.Unmarshal([]byte(text), &workflow)
-	return
-}
-
-func (workflow *Workflow) Run() {
+func (w *Workflow) Run() error {
 	// setup workflow environment
-	for j := range workflow.EnvironmentList {
-		environmentVariableList := workflow.EnvironmentList[j]
+	for j := range w.EnvironmentList {
+		environmentVariableList := w.EnvironmentList[j]
 		for k := range environmentVariableList {
-			os.Setenv(k, environmentVariableList[k])
+			if err := os.Setenv(k, environmentVariableList[k]); err != nil {
+				return fmt.Errorf("error setting up workflow environment: %w", err)
+			}
 		}
 	}
 
 	// setup workflow tasks and steps
-	for i := range workflow.TaskList {
-		taskData := workflow.TaskList[i]
+	for i := range w.TaskList {
+		taskData := w.TaskList[i]
 		var node string
 		var taskType string
 		var stepList []interface{}
@@ -52,16 +73,19 @@ func (workflow *Workflow) Run() {
 		}
 		for k := range stepList {
 			step := stepList[k].(map[string]interface{})
-			task := tasks.NewTask(taskType, step, node)
-			task.Run()
+			task := w.Tasks.NewTask(taskType, step, node)
+			if err := task.Run(); err != nil {
+				return fmt.Errorf("error running task: %w", err)
+			}
 		}
 	}
+	return nil
 }
 
-func (workflow *Workflow) SplitNodes() (newWorkflowList []Workflow) {
-	// setup workflow tasks and steps
-	for i := range workflow.TaskList {
-		taskData := workflow.TaskList[i]
+func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
+	// setup w tasks and steps
+	for i := range w.TaskList {
+		taskData := w.TaskList[i]
 		node := ""
 		for j := range taskData {
 			switch j {
@@ -72,9 +96,9 @@ func (workflow *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 
 		if node != "" {
 			newWf := &Workflow{
-				Version:         workflow.Version,
-				EnvironmentList: workflow.EnvironmentList,
-				TaskList:        []map[string]interface{}{workflow.TaskList[i]},
+				Version:         w.Version,
+				EnvironmentList: w.EnvironmentList,
+				TaskList:        []map[string]interface{}{w.TaskList[i]},
 				Node:            node,
 			}
 			newWorkflowList = append(newWorkflowList, *newWf)

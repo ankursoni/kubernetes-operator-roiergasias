@@ -4,15 +4,29 @@ import (
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/steps"
 )
 
+type ITasks interface {
+	NewTask(string, map[string]interface{}, string) ITaskWorkflow
+}
+
+type Tasks struct {
+	SequentialTasks ISequentialTasks
+}
+
+var _ ITasks = &Tasks{}
+
+func NewTasks() *Tasks {
+	return &Tasks{SequentialTasks: &SequentialTasks{}}
+}
+
+type ITaskWorkflow interface {
+	Run() error
+}
+
 type Task struct {
 	Node string
 }
 
-type TaskWorkflow interface {
-	Run()
-}
-
-func NewTask(taskType string, stepData map[string]interface{}, node string) (task TaskWorkflow) {
+func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node string) (task ITaskWorkflow) {
 	var keys []string
 	for k := range stepData {
 		keys = append(keys, k)
@@ -36,7 +50,7 @@ func NewTask(taskType string, stepData map[string]interface{}, node string) (tas
 		var sequentialSteps []steps.StepWorkflow
 		step := steps.NewStep(stepType, stepArguments, otherStepArguments)
 		sequentialSteps = append(sequentialSteps, step)
-		task = NewSequentialTask(sequentialSteps, node)
+		task = t.SequentialTasks.NewSequentialTask(sequentialSteps, node)
 		return
 	default:
 		return
