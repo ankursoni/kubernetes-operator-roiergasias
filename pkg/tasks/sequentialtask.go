@@ -5,18 +5,19 @@ import (
 )
 
 type ISequentialTasks interface {
-	NewSequentialTask([]steps.StepWorkflow, string) *SequentialTask
+	NewSequentialTask([]steps.IStepWorkflow, string) ITaskWorkflow
 }
 
 type SequentialTasks struct{}
 
 var _ ISequentialTasks = &SequentialTasks{}
 
-func NewSequentialTasks() ISequentialTasks {
-	return &SequentialTasks{}
+func NewSequentialTasks() (sequentialTasks ISequentialTasks) {
+	sequentialTasks = &SequentialTasks{}
+	return
 }
 
-func (_ *SequentialTasks) NewSequentialTask(steps []steps.StepWorkflow, node string) *SequentialTask {
+func (_ *SequentialTasks) NewSequentialTask(steps []steps.IStepWorkflow, node string) ITaskWorkflow {
 	return &SequentialTask{
 		Steps: steps,
 		Task:  Task{Node: node},
@@ -24,7 +25,7 @@ func (_ *SequentialTasks) NewSequentialTask(steps []steps.StepWorkflow, node str
 }
 
 type SequentialTask struct {
-	Steps []steps.StepWorkflow
+	Steps []steps.IStepWorkflow
 	Task
 }
 

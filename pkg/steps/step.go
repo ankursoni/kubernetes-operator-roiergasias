@@ -9,11 +9,11 @@ type Step struct {
 	SetEnvironmentList map[string]interface{}
 }
 
-type StepWorkflow interface {
+type IStepWorkflow interface {
 	Run()
 }
 
-func NewStep(stepType string, stepArguments []interface{}, otherStepArguments map[string]interface{}) (step StepWorkflow) {
+func NewStep(stepType string, stepArguments []interface{}, otherStepArguments map[string]interface{}) (step IStepWorkflow) {
 	newStep := &Step{}
 	newStep.StepArgumentList = stepArguments
 	for k := range otherStepArguments {
@@ -26,13 +26,10 @@ func NewStep(stepType string, stepArguments []interface{}, otherStepArguments ma
 	switch stepType {
 	case "print":
 		step = newStep.NewPrintStep()
-		return
 	case "execute":
 		step = newStep.NewExecuteStep()
-		return
-	default:
-		return
 	}
+	return
 }
 
 func (step *Step) Run() {

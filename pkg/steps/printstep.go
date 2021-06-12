@@ -6,7 +6,7 @@ import (
 	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
 )
 
-var _ StepWorkflow = &PrintStep{}
+var _ IStepWorkflow = &PrintStep{}
 
 type PrintStep struct {
 	MessageList []string

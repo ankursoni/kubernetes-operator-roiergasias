@@ -9,7 +9,7 @@ import (
 	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
 )
 
-var _ StepWorkflow = &ExecuteStep{}
+var _ IStepWorkflow = &ExecuteStep{}
 
 type ExecuteStep struct {
 	CommandList []string

@@ -14,8 +14,9 @@ type Tasks struct {
 
 var _ ITasks = &Tasks{}
 
-func NewTasks() ITasks {
-	return &Tasks{SequentialTasks: NewSequentialTasks()}
+func NewTasks() (tasks ITasks) {
+	tasks = &Tasks{SequentialTasks: NewSequentialTasks()}
+	return
 }
 
 type ITaskWorkflow interface {
@@ -27,7 +28,7 @@ type Task struct {
 }
 
 func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node string) (task ITaskWorkflow) {
-	var keys []string
+	keys := []string{}
 	for k := range stepData {
 		keys = append(keys, k)
 	}
@@ -47,12 +48,10 @@ func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node s
 
 	switch taskType {
 	case "sequential":
-		var sequentialSteps []steps.StepWorkflow
+		sequentialSteps := []steps.IStepWorkflow{}
 		step := steps.NewStep(stepType, stepArguments, otherStepArguments)
 		sequentialSteps = append(sequentialSteps, step)
 		task = t.SequentialTasks.NewSequentialTask(sequentialSteps, node)
-		return
-	default:
-		return
 	}
+	return
 }

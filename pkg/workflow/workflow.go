@@ -20,8 +20,13 @@ type Workflows struct {
 
 var _ IWorkflows = &Workflows{}
 
-func NewWorkflows() *Workflows {
-	return &Workflows{Tasks: tasks.NewTasks()}
+func NewWorkflows(t tasks.ITasks) (workflows IWorkflows) {
+	if t == nil {
+		workflows = &Workflows{Tasks: tasks.NewTasks()}
+	} else {
+		workflows = &Workflows{Tasks: t}
+	}
+	return
 }
 
 func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) {
