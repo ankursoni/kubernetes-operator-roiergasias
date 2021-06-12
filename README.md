@@ -3,6 +3,8 @@
 
 This **kubernetes operator** is meant to address a fundamental requirement of any data science / machine learning project running their pipelines on Kubernetes - which is to quickly provision a declarative data pipeline (on demand) for their various project needs using simple kubectl commands. Basically, implementing the concept of **No Ops**.
 
+&#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in June 2021.  
+> MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
 ## Run "Hello world" workflow locally
 ``` SH
