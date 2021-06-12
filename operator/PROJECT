@@ -1,7 +1,7 @@
 domain: ankursoni.github.io
 layout:
 - go.kubebuilder.io/v3
-projectName: roiergasias
+projectName: operator
 repo: github.com/ankursoni/kubernetes-operator-roiergasias/operator
 resources:
 - api:

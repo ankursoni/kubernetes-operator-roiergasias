@@ -71,7 +71,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "02049212.ankursoni.github.io",
+		LeaderElectionID:       "2fa420e7.ankursoni.github.io",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -80,7 +80,6 @@ func main() {
 
 	if err = (&controllers.WorkflowReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Workflow")

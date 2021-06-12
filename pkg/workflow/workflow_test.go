@@ -23,7 +23,7 @@ version: 1.0
 task:
   - sequential:
     - print:
-      - "Hello"`
+      - "Hello World!"`
 			mockController = gomock.NewController(GinkgoT())
 			t = mocks.NewMockITasks(mockController)
 			tw = mocks.NewMockITaskWorkflow(mockController)
@@ -33,6 +33,9 @@ task:
 			w, err := workflow.NewWorkflows(nil).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
+
+			err = w.Run()
+			Expect(err).ToNot(HaveOccurred())
 		})
 		It("create new workflow and run with task mock", func() {
 			t.EXPECT().NewTask(gomock.Eq("sequential"), gomock.Any(), gomock.Eq("")).Return(tw)
