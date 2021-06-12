@@ -4128,7 +4128,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: docker.io/ankursoni/roiergasias-operator:latest
+        image: docker.io/ankursoni/roiergasias-operator:0.1.0
         livenessProbe:
           httpGet:
             path: /healthz
