@@ -3,9 +3,9 @@ module github.com/ankursoni/kubernetes-operator-roiergasias/operator
 go 1.16
 
 require (
-	github.com/ankursoni/kubernetes-operator-roiergasias v0.0.0-20210602201554-a7f0c510e8b7
-	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
+	github.com/ankursoni/kubernetes-operator-roiergasias v0.0.0-20210613060511-617ce8b988ef
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.13.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2

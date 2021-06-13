@@ -94,8 +94,11 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// check if split execution is needed in spec workflow yaml
-	wfYAML := wf.NewWorkflowFromText(workflow.Spec.WorkflowYAML.YAML)
-	splitWfList := wfYAML.SplitNodes()
+	splitWfList := []wf.Workflow{}
+	wfYAML, err := wf.NewWorkflows(nil).NewWorkflowFromText(workflow.Spec.WorkflowYAML.YAML)
+	if err != nil && wfYAML != nil {
+		splitWfList = wfYAML.SplitNodes()
+	}
 
 	// if the workflow is split then construct multiple configMap + job k8s resources
 	if splitWfList != nil && len(splitWfList) > 0 {
