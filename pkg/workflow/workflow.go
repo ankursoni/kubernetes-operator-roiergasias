@@ -43,11 +43,11 @@ func (w Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err err
 }
 
 type Workflow struct {
-	Version         string                   `yaml:"version"`
-	EnvironmentList []map[string]string      `yaml:"environment"`
-	TaskList        []map[string]interface{} `yaml:"task"`
-	Node            string
-	Tasks           tasks.ITasks
+	Version         string                   `yaml:"version,omitempty"`
+	EnvironmentList []map[string]string      `yaml:"environment,omitempty"`
+	TaskList        []map[string]interface{} `yaml:"task,omitempty"`
+	Node            string                   `yaml:",omitempty"`
+	Tasks           tasks.ITasks             `yaml:",omitempty"`
 }
 
 func (w *Workflow) Run() error {
