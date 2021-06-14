@@ -5,17 +5,17 @@ environment:
 
 task:
   - sequential:
-    - print:
-      - "Hello"
-      - "World!"
-    - print:
-      - "Hi"
-      - "Universe!"
-      set-environment:
-        - greeting: "Warm greetings!"
+      - print:
+          - "Hello"
+          - "World!"
+      - print:
+          - "Hi"
+          - "Universe!"
+        set-environment:
+          - greeting: "Warm greetings!"
 
   - sequential:
-    - print:
-      - "{{env:welcome}}"
-    - print:
-      - "{{env:greeting}}"
+      - print:
+          - "{{env:welcome}}"
+      - print:
+          - "{{env:greeting}}"

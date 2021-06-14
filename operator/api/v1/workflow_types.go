@@ -28,10 +28,10 @@ import (
 // WorkflowYAMLSpec defines the workflow orchestration
 type WorkflowYAMLSpec struct {
 	// Name of the yaml file without .yaml extension
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 
 	// Content of the yaml file
-	YAML string `json:"yaml,omitempty"`
+	YAML string `json:"yaml"`
 }
 
 // WorkflowSpec defines the desired state of Workflow
@@ -40,7 +40,7 @@ type WorkflowSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Specifies the workflow yaml file that will orchestrate execution
-	WorkflowYAML WorkflowYAMLSpec `json:"workflowYAML,omitempty"`
+	WorkflowYAML WorkflowYAMLSpec `json:"workflowYAML"`
 
 	// Specifies the job that will be created when executing a Workflow.
 	JobTemplate batchv1beta1.JobTemplateSpec `json:"jobTemplate"`
@@ -51,9 +51,11 @@ type WorkflowStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// A pointer to currently active job.
+	// A pointer to currently active jobs and completed jobs.
 	// +optional
-	Job corev1.ObjectReference `json:"active,omitempty"`
+	ActiveJobs     []corev1.ObjectReference `json:"activeJobs,omitempty"`
+	SuccessfulJobs []corev1.ObjectReference `json:"successfulJobs,omitempty"`
+	FailedJobs     []corev1.ObjectReference `json:"failedJobs,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -64,7 +66,7 @@ type Workflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   WorkflowSpec   `json:"spec,omitempty"`
+	Spec   WorkflowSpec   `json:"spec"`
 	Status WorkflowStatus `json:"status,omitempty"`
 }
 

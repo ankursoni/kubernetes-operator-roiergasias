@@ -3,6 +3,8 @@
 
 This **kubernetes operator** is meant to address a fundamental requirement of any data science / machine learning project running their pipelines on Kubernetes - which is to quickly provision a declarative data pipeline (on demand) for their various project needs using simple kubectl commands. Basically, implementing the concept of **No Ops**.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/ankursoni/kubernetes-operator-roiergasias.svg)](https://pkg.go.dev/github.com/ankursoni/kubernetes-operator-roiergasias)
+
 &#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in June 2021.  
 > MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
@@ -52,20 +54,20 @@ spec:
 
       task:
         - sequential:
-          - print:
-            - "Hello"
-            - "World!"
-          - print:
-            - "Hi"
-            - "Universe!"
-            set-environment:
-              - greeting: "Warm greetings!"
+            - print:
+                - "Hello"
+                - "World!"
+            - print:
+                - "Hi"
+                - "Universe!"
+              set-environment:
+                - greeting: "Warm greetings!"
 
         - sequential:
-          - print:
-            - "{{env:welcome}}"
-          - print:
-            - "{{env:greeting}}"
+            - print:
+                - "{{env:welcome}}"
+            - print:
+                - "{{env:greeting}}"
       
   jobTemplate:
     spec:
@@ -116,7 +118,7 @@ Follow this [README](cmd/machine-learning/README.md#process-data-train-ml-model-
 ``` SH
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.0 \
+  --version v0.1.0 \
   roiergasias-operator roiergasias-operator
 
 # uninstall the operator

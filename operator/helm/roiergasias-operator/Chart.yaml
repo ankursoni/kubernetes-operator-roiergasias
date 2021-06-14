@@ -1,4 +1,4 @@
 apiVersion: v2
 description: Helm chart for roiergasias operator
 name: roiergasias-operator
-version: 0.1.0
+version: v0.1.0

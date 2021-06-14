@@ -72,10 +72,7 @@ task:
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, workflowLookupKey, createdWorkflow)
-				if err != nil {
-					return false
-				}
-				return true
+				return err == nil
 			}, timeout, interval).Should(BeTrue())
 			// Let's make sure our Schedule string value was properly converted/handled.
 			Expect(createdWorkflow.Spec.WorkflowYAML.Name).Should(Equal("hello-world"))

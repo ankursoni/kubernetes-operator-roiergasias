@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	workflowv1 "github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1"
+	wf "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/workflow"
 	"gopkg.in/yaml.v3"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,9 +30,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	workflowv1 "github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1"
-	wf "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/workflow"
 )
 
 // WorkflowReconciler reconciles a Workflow object
@@ -42,6 +41,7 @@ type WorkflowReconciler struct {
 //+kubebuilder:rbac:groups=workflowv1.ankursoni.github.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=workflowv1.ankursoni.github.io,resources=workflows/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=workflowv1.ankursoni.github.io,resources=workflows/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=configMaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get
 
@@ -57,265 +57,151 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger := log.FromContext(ctx)
 
 	// get reference to workflow
-	var workflow workflowv1.Workflow
+	workflow := workflowv1.Workflow{}
 	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
 		logger.Error(err, "unable to fetch workflow")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// get reference to workflow jobs
-	var workflowJobs batchv1.JobList
-	if err := r.List(ctx, &workflowJobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerKey: req.Name}); err != nil {
-		logger.Error(err, "unable to get workflow job")
+	// get reference to child jobs
+	childJobs := batchv1.JobList{}
+	if err := r.List(ctx, &childJobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerKey: req.Name}); err != nil {
+		logger.Error(err, "unable to list child jobs")
 		return ctrl.Result{}, err
 	}
 
-	// check if workflow jobs and update workflow status based on job status
-	if workflowJobs.Items != nil && len(workflowJobs.Items) > 0 {
-		workflowJob := workflowJobs.Items[0]
-		jobRef, err := ref.GetReference(r.Scheme, &workflowJob)
-		if err != nil {
-			logger.Error(err, "unable to make reference to job", "job", workflowJob)
-			return ctrl.Result{}, err
+	// find the active list of jobs
+	activeJobs := []*batchv1.Job{}
+	activeJobRefs := []corev1.ObjectReference{}
+	successfulJobs := []*batchv1.Job{}
+	successfulJobRefs := []corev1.ObjectReference{}
+	failedJobs := []*batchv1.Job{}
+	failedJobRefs := []corev1.ObjectReference{}
+	// check all child jobs and update workflow status based on job status
+	for _, job := range childJobs.Items {
+		_, finishedType := r.isJobFinished(&job)
+		switch finishedType {
+		case "":
+			activeJobs = append(activeJobs, &job)
+		case batchv1.JobComplete:
+			successfulJobs = append(successfulJobs, &job)
+		case batchv1.JobFailed:
+			failedJobs = append(failedJobs, &job)
 		}
-		workflow.Status.Job = *jobRef
+		for _, activeJob := range activeJobs {
+			jobRef, err := ref.GetReference(r.Scheme, activeJob)
+			if err != nil {
+				logger.Error(err, "unable to make reference to active job", "job", activeJob)
+				continue
+			}
+			activeJobRefs = append(activeJobRefs, *jobRef)
+		}
+		for _, successfulJob := range successfulJobs {
+			jobRef, err := ref.GetReference(r.Scheme, successfulJob)
+			if err != nil {
+				logger.Error(err, "unable to make reference to successful job", "job", successfulJob)
+				continue
+			}
+			successfulJobRefs = append(successfulJobRefs, *jobRef)
+		}
+		for _, failedJob := range failedJobs {
+			jobRef, err := ref.GetReference(r.Scheme, failedJob)
+			if err != nil {
+				logger.Error(err, "unable to make reference to failed job", "job", failedJob)
+				continue
+			}
+			failedJobRefs = append(failedJobRefs, *jobRef)
+		}
+	}
+	logger.V(1).Info("job count", "active jobs", len(activeJobs),
+		"successful jobs", len(successfulJobs), "failed jobs", len(failedJobs), "total jobs", len(childJobs.Items))
 
-		if err := r.Status().Update(ctx, &workflow); err != nil {
-			logger.Error(err, "unable to update workflow status")
-		}
+	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
+		logger.Error(err, "unable to fetch workflow")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	workflow.Status.ActiveJobs = activeJobRefs
+	workflow.Status.SuccessfulJobs = successfulJobRefs
+	workflow.Status.FailedJobs = failedJobRefs
+	if err := r.Status().Update(ctx, &workflow); err != nil {
+		logger.Error(err, "unable to update workflow status")
 		return ctrl.Result{}, err
 	}
 
 	// validate spec workflow yaml
 	if workflow.Spec.WorkflowYAML.Name == "" || workflow.Spec.WorkflowYAML.YAML == "" {
 		err := fmt.Errorf("empty spec.workflowYAML name or yaml")
-		logger.Error(err, "workflowYAM not proper in the spec")
+		logger.Error(err, "workflowYAML not proper in the spec")
 		return ctrl.Result{}, err
 	}
 
 	// check if split execution is needed in spec workflow yaml
-	splitWfList := []wf.Workflow{}
 	wfYAML, err := wf.NewWorkflows(nil).NewWorkflowFromText(workflow.Spec.WorkflowYAML.YAML)
-	if err != nil && wfYAML != nil {
-		splitWfList = wfYAML.SplitNodes()
+	if err != nil {
+		err = fmt.Errorf("invalid spec.workflowYAML yaml with error %w", err)
+		logger.Error(err, "workflowYAML not proper in the spec")
+		return ctrl.Result{}, err
 	}
-
-	// if the workflow is split then construct multiple configMap + job k8s resources
-	if splitWfList != nil && len(splitWfList) > 0 {
-		for k := range splitWfList {
-			constructConfigMapForSplitWorkflow := func(workflow *workflowv1.Workflow, node string, yamlText string) (
-				*corev1.ConfigMap, error) {
-				name := fmt.Sprintf("%s-%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name, node)
-				configMap := &corev1.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels:      make(map[string]string),
-						Annotations: make(map[string]string),
-						Name:        name,
-						Namespace:   workflow.Namespace,
-					},
-					Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): yamlText},
-				}
-				if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
-					return nil, err
-				}
-				return configMap, nil
-			}
-			// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
-
-			splitWf := &splitWfList[k]
-			yamlBytes, _ := yaml.Marshal(splitWf)
-			configMap, err := constructConfigMapForSplitWorkflow(&workflow, splitWf.Node, string(yamlBytes))
-			if err != nil {
-				logger.Error(err, "unable to construct configMap from split node")
-				return ctrl.Result{}, nil
-			}
-
-			existingConfigMap := &corev1.ConfigMap{}
-			err = r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, existingConfigMap)
-			if err != nil || existingConfigMap.Name == "" {
-				if err := r.Create(ctx, configMap); err != nil {
-					logger.Error(err, "unable to create configMap for workflow", "configMap", configMap)
-					return ctrl.Result{}, err
-				}
-				logger.V(1).Info("created configMap for workflow run", "configMap", configMap)
-			} else {
-				if err := r.Update(ctx, configMap); err != nil {
-					logger.Error(err, "unable to update configMap for workflow", "configMap", configMap)
-					return ctrl.Result{}, err
-				}
-				logger.V(1).Info("updated configMap for workflow run", "configMap", configMap)
-			}
-
-			constructJobForWorkflow := func(workflow *workflowv1.Workflow, node string) (*batchv1.Job, error) {
-				name := workflow.Name
-				job := &batchv1.Job{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels:      make(map[string]string),
-						Annotations: make(map[string]string),
-						Name:        name,
-						Namespace:   workflow.Namespace,
-					},
-					Spec: *workflow.Spec.JobTemplate.Spec.DeepCopy(),
-				}
-				for k, v := range workflow.Spec.JobTemplate.Annotations {
-					job.Annotations[k] = v
-				}
-				job.Annotations["node"] = node
-				for k, v := range workflow.Spec.JobTemplate.Labels {
-					job.Labels[k] = v
-				}
-				// find and remove any volumes with name "yaml"
-				for i := 0; i < len(job.Spec.Template.Spec.Volumes); i++ {
-					volume := job.Spec.Template.Spec.Volumes[i]
-					if volume.Name == "yaml" {
-						job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes[:i], job.Spec.Template.Spec.Volumes[i+1:]...)
-						break
-					}
-				}
-				// create volume with name "yaml"
-				job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes,
-					corev1.Volume{
-						Name: "yaml",
-						VolumeSource: corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{Name: configMap.Name},
-							},
-						},
-					},
-				)
-				if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
-					return nil, err
-				}
-				return job, nil
-			}
-			// +kubebuilder:docs-gen:collapse=constructJobForWorkflow
-
-			job, err := constructJobForWorkflow(&workflow, splitWf.Node)
-			if err != nil {
-				logger.Error(err, "unable to construct job from template")
-				return ctrl.Result{}, nil
-			}
-
-			existingJob := &batchv1.Job{}
-			err = r.Get(ctx, client.ObjectKey{Name: job.Name, Namespace: job.Namespace}, existingJob)
-			if err != nil || existingJob.Name == "" {
-				if err := r.Create(ctx, job); err != nil {
-					logger.Error(err, "unable to create job for workflow", "job", job)
-					return ctrl.Result{}, err
-				}
-				logger.V(1).Info("created job for workflow run", "job", job)
-			} else {
-				if err := r.Update(ctx, job); err != nil {
-					logger.Error(err, "unable to update job for workflow", "job", job)
-					return ctrl.Result{}, err
-				}
-				logger.V(1).Info("updated job for workflow run", "job", job)
-			}
+	splitWfList := wfYAML.SplitNodes()
+	if len(splitWfList) == 0 { // construct single configMap + job k8s resource
+		if len(activeJobs)+len(successfulJobs)+len(failedJobs) > 0 {
+			return ctrl.Result{}, nil
 		}
-	} else { // construct single configMap + job k8s resource
-		constructConfigMapForWorkflow := func(workflow *workflowv1.Workflow) (*corev1.ConfigMap, error) {
-			name := fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
-			configMap := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      make(map[string]string),
-					Annotations: make(map[string]string),
-					Name:        name,
-					Namespace:   workflow.Namespace,
-				},
-				Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): workflow.Spec.WorkflowYAML.YAML},
-			}
-			if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
-				return nil, err
-			}
-			return configMap, nil
-		}
-		// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
 
-		configMap, err := constructConfigMapForWorkflow(&workflow)
+		configMap, err := r.constructConfigMapForWorkflow(&workflow, workflow.Spec.WorkflowYAML.YAML, "")
 		if err != nil {
 			logger.Error(err, "unable to construct configMap from template")
 			return ctrl.Result{}, nil
 		}
-
-		existingConfigMap := &corev1.ConfigMap{}
-		err = r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, existingConfigMap)
-		if err != nil || existingConfigMap.Name == "" {
-			if err := r.Create(ctx, configMap); err != nil {
-				logger.Error(err, "unable to create configMap for workflow", "configMap", configMap)
-				return ctrl.Result{}, err
-			}
-			logger.V(1).Info("created configMap for workflow run", "configMap", configMap)
-		} else {
-			if err := r.Update(ctx, configMap); err != nil {
-				logger.Error(err, "unable to update configMap for workflow", "configMap", configMap)
-				return ctrl.Result{}, err
-			}
-			logger.V(1).Info("updated configMap for workflow run", "configMap", configMap)
+		if err := r.Create(ctx, configMap); err != nil {
+			logger.Error(err, "unable to create configMap for workflow", "configMap", configMap)
+			return ctrl.Result{}, err
 		}
+		logger.V(1).Info("created configMap for workflow", "configMap", configMap)
 
-		constructJobForWorkflow := func(workflow *workflowv1.Workflow) (*batchv1.Job, error) {
-			name := workflow.Name
-			job := &batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      make(map[string]string),
-					Annotations: make(map[string]string),
-					Name:        name,
-					Namespace:   workflow.Namespace,
-				},
-				Spec: *workflow.Spec.JobTemplate.Spec.DeepCopy(),
-			}
-			for k, v := range workflow.Spec.JobTemplate.Annotations {
-				job.Annotations[k] = v
-			}
-			for k, v := range workflow.Spec.JobTemplate.Labels {
-				job.Labels[k] = v
-			}
-			// find and remove any volumes with name "yaml"
-			for i := 0; i < len(job.Spec.Template.Spec.Volumes); i++ {
-				volume := job.Spec.Template.Spec.Volumes[i]
-				if volume.Name == "yaml" {
-					job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes[:i], job.Spec.Template.Spec.Volumes[i+1:]...)
-					break
-				}
-			}
-			// create volume with name "yaml"
-			job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes,
-				corev1.Volume{
-					Name: "yaml",
-					VolumeSource: corev1.VolumeSource{
-						ConfigMap: &corev1.ConfigMapVolumeSource{
-							LocalObjectReference: corev1.LocalObjectReference{Name: configMap.Name},
-						},
-					},
-				},
-			)
-			if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
-				return nil, err
-			}
-			return job, nil
-		}
-		// +kubebuilder:docs-gen:collapse=constructJobForWorkflow
-
-		job, err := constructJobForWorkflow(&workflow)
+		job, err := r.constructJobForWorkflow(&workflow, configMap, "")
 		if err != nil {
 			logger.Error(err, "unable to construct job from template")
 			return ctrl.Result{}, nil
 		}
+		if err := r.Create(ctx, job); err != nil {
+			logger.Error(err, "unable to create job for workflow", "job", job)
+			return ctrl.Result{}, err
+		}
+		logger.V(1).Info("created job for workflow run", "job", job)
+	} else { // else if the workflow is split then construct multiple configMaps + jobs k8s resources
+		for k, splitWf := range splitWfList {
+			if len(activeJobs)+len(successfulJobs)+len(failedJobs) > 0 {
+				if len(activeJobs) > 0 || k > len(successfulJobs) {
+					return ctrl.Result{}, nil
+				}
+				if k < len(successfulJobs) {
+					continue
+				}
+			}
+			yamlBytes, _ := yaml.Marshal(splitWf)
+			configMap, err := r.constructConfigMapForWorkflow(&workflow, string(yamlBytes), splitWf.Node)
+			if err != nil {
+				logger.Error(err, "unable to construct configMap from split node template")
+				return ctrl.Result{}, nil
+			}
+			if err := r.Create(ctx, configMap); err != nil {
+				logger.Error(err, "unable to create configMap for workflow", "configMap", configMap)
+				return ctrl.Result{}, err
+			}
+			logger.V(1).Info("created configMap for workflow", "configMap", configMap)
 
-		existingJob := &batchv1.Job{}
-		err = r.Get(ctx, client.ObjectKey{Name: job.Name, Namespace: job.Namespace}, existingJob)
-		if err != nil || existingJob.Name == "" {
+			job, err := r.constructJobForWorkflow(&workflow, configMap, splitWf.Node)
+			if err != nil {
+				logger.Error(err, "unable to construct job from split node template")
+				return ctrl.Result{}, nil
+			}
 			if err := r.Create(ctx, job); err != nil {
 				logger.Error(err, "unable to create job for workflow", "job", job)
 				return ctrl.Result{}, err
 			}
 			logger.V(1).Info("created job for workflow run", "job", job)
-		} else {
-			if err := r.Update(ctx, job); err != nil {
-				logger.Error(err, "unable to update job for workflow", "job", job)
-				return ctrl.Result{}, err
-			}
-			logger.V(1).Info("updated job for workflow run", "job", job)
+			break
 		}
 	}
 	return ctrl.Result{}, nil
@@ -351,3 +237,92 @@ func (r *WorkflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&batchv1.Job{}).
 		Complete(r)
 }
+
+func (r *WorkflowReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
+	for _, c := range job.Status.Conditions {
+		if (c.Type == batchv1.JobComplete || c.Type == batchv1.JobFailed) && c.Status == corev1.ConditionTrue {
+			return true, c.Type
+		}
+	}
+	return false, ""
+}
+
+// +kubebuilder:docs-gen:collapse=isJobFinished
+
+func (r *WorkflowReconciler) constructConfigMapForWorkflow(workflow *workflowv1.Workflow, yamlText string, node string) (
+	*corev1.ConfigMap, error) {
+	name := ""
+	if node == "" {
+		name = fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
+	} else {
+		name = fmt.Sprintf("%s-%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name, node)
+	}
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      make(map[string]string),
+			Annotations: make(map[string]string),
+			Name:        name,
+			Namespace:   workflow.Namespace,
+		},
+		Data: map[string]string{fmt.Sprintf("%s.yaml", workflow.Spec.WorkflowYAML.Name): yamlText},
+	}
+	if err := ctrl.SetControllerReference(workflow, configMap, r.Scheme); err != nil {
+		return nil, err
+	}
+	return configMap, nil
+}
+
+// +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
+
+func (r *WorkflowReconciler) constructJobForWorkflow(workflow *workflowv1.Workflow, configMap *corev1.ConfigMap,
+	node string) (*batchv1.Job, error) {
+	name := ""
+	if node == "" {
+		name = workflow.Name
+	} else {
+		name = fmt.Sprintf("%s-%s", workflow.Name, node)
+	}
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      make(map[string]string),
+			Annotations: make(map[string]string),
+			Name:        name,
+			Namespace:   workflow.Namespace,
+		},
+		Spec: *workflow.Spec.JobTemplate.Spec.DeepCopy(),
+	}
+	for k, v := range workflow.Spec.JobTemplate.Annotations {
+		job.Annotations[k] = v
+	}
+	if node != "" {
+		job.Annotations["node"] = node
+	}
+	for k, v := range workflow.Spec.JobTemplate.Labels {
+		job.Labels[k] = v
+	}
+	// find and remove any volumes with name "yaml"
+	for i := 0; i < len(job.Spec.Template.Spec.Volumes); i++ {
+		volume := job.Spec.Template.Spec.Volumes[i]
+		if volume.Name == "yaml" {
+			job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes[:i], job.Spec.Template.Spec.Volumes[i+1:]...)
+			break
+		}
+	}
+	// create volume with name "yaml"
+	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes,
+		corev1.Volume{
+			Name: "yaml",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{Name: configMap.Name},
+				},
+			},
+		},
+	)
+	if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
+		return nil, err
+	}
+	return job, nil
+}
+
+// +kubebuilder:docs-gen:collapse=constructJobForWorkflow
