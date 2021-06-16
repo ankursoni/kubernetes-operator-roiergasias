@@ -3,7 +3,7 @@ module github.com/ankursoni/kubernetes-operator-roiergasias/operator
 go 1.16
 
 require (
-	github.com/ankursoni/kubernetes-operator-roiergasias v0.0.0-20210614203650-f5b3207da6c5
+	github.com/ankursoni/kubernetes-operator-roiergasias v0.0.0-20210616212516-a8e317edd89b
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b

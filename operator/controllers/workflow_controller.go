@@ -294,9 +294,6 @@ func (r *WorkflowReconciler) constructJobForWorkflow(workflow *workflowv1.Workfl
 	for k, v := range workflow.Spec.JobTemplate.Annotations {
 		job.Annotations[k] = v
 	}
-	if node != "" {
-		job.Annotations["node"] = node
-	}
 	for k, v := range workflow.Spec.JobTemplate.Labels {
 		job.Labels[k] = v
 	}
@@ -319,6 +316,10 @@ func (r *WorkflowReconciler) constructJobForWorkflow(workflow *workflowv1.Workfl
 			},
 		},
 	)
+	if node != "" {
+		job.Annotations["node"] = node
+		job.Spec.Template.Spec.NodeSelector = map[string]string{"node": node}
+	}
 	if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
 		return nil, err
 	}
