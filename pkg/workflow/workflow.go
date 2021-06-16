@@ -88,14 +88,17 @@ func (w *Workflow) Run() error {
 }
 
 func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
-	// setup workflow tasks and steps
+	additionalEnvironmentList := []map[string]string{}
 	for i := range w.TaskList {
 		taskData := w.TaskList[i]
-		node := ""
+		var node string
+		var stepList []interface{}
 		for j := range taskData {
 			switch j {
 			case "node":
 				node = taskData[j].(string)
+			default:
+				stepList = taskData[j].([]interface{})
 			}
 		}
 
@@ -105,6 +108,28 @@ func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 				EnvironmentList: w.EnvironmentList,
 				TaskList:        []map[string]interface{}{w.TaskList[i]},
 				Node:            node,
+			}
+			taskAdditionalEnvironmentList := []map[string]string{}
+			for k := range stepList {
+				step := stepList[k].(map[string]interface{})
+				for l := range step {
+					if l == "set-environment" {
+						stepEnvironmentData := step[l].([]interface{})
+						for m := range stepEnvironmentData {
+							stepEnvironmentDataList := stepEnvironmentData[m].(map[string]interface{})
+							for n := range stepEnvironmentDataList {
+								taskAdditionalEnvironmentList = append(taskAdditionalEnvironmentList,
+									map[string]string{n: stepEnvironmentDataList[n].(string)})
+							}
+						}
+					}
+				}
+			}
+			for o := range additionalEnvironmentList {
+				newWf.EnvironmentList = append(newWf.EnvironmentList, additionalEnvironmentList[o])
+			}
+			for p := range taskAdditionalEnvironmentList {
+				additionalEnvironmentList = append(additionalEnvironmentList, taskAdditionalEnvironmentList[p])
 			}
 			newWorkflowList = append(newWorkflowList, *newWf)
 		} else {

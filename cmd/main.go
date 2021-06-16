@@ -19,14 +19,4 @@ func main() {
 		log.Fatalln(fmt.Errorf("error running workflow: %w", err))
 		return
 	}
-
-	//splitList := w.SplitNodes()
-	//for _, split := range splitList {
-	//	bytes, _ := yaml.Marshal(split)
-	//	fmt.Println(string(bytes))
-	//}
-	//if splitList == nil || len(splitList) == 0 {
-	//	bytes, _ := yaml.Marshal(w)
-	//	fmt.Println(string(bytes))
-	//}
 }
