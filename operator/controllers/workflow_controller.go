@@ -71,47 +71,47 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// find the active list of jobs
-	activeJobs := []*batchv1.Job{}
-	activeJobRefs := []corev1.ObjectReference{}
-	successfulJobs := []*batchv1.Job{}
-	successfulJobRefs := []corev1.ObjectReference{}
-	failedJobs := []*batchv1.Job{}
-	failedJobRefs := []corev1.ObjectReference{}
+	activeJobs := []batchv1.Job{}
+	successfulJobs := []batchv1.Job{}
+	failedJobs := []batchv1.Job{}
 	// check all child jobs and update workflow status based on job status
 	for _, job := range childJobs.Items {
 		_, finishedType := r.isJobFinished(&job)
 		switch finishedType {
 		case "":
-			activeJobs = append(activeJobs, &job)
+			activeJobs = append(activeJobs, job)
 		case batchv1.JobComplete:
-			successfulJobs = append(successfulJobs, &job)
+			successfulJobs = append(successfulJobs, job)
 		case batchv1.JobFailed:
-			failedJobs = append(failedJobs, &job)
+			failedJobs = append(failedJobs, job)
 		}
-		for _, activeJob := range activeJobs {
-			jobRef, err := ref.GetReference(r.Scheme, activeJob)
-			if err != nil {
-				logger.Error(err, "unable to make reference to active job", "job", activeJob)
-				continue
-			}
-			activeJobRefs = append(activeJobRefs, *jobRef)
+	}
+	activeJobRefs := []corev1.ObjectReference{}
+	for _, activeJob := range activeJobs {
+		jobRef, err := ref.GetReference(r.Scheme, &activeJob)
+		if err != nil {
+			logger.Error(err, "unable to make reference to active job", "job", activeJob)
+			continue
 		}
-		for _, successfulJob := range successfulJobs {
-			jobRef, err := ref.GetReference(r.Scheme, successfulJob)
-			if err != nil {
-				logger.Error(err, "unable to make reference to successful job", "job", successfulJob)
-				continue
-			}
-			successfulJobRefs = append(successfulJobRefs, *jobRef)
+		activeJobRefs = append(activeJobRefs, *jobRef)
+	}
+	successfulJobRefs := []corev1.ObjectReference{}
+	for _, successfulJob := range successfulJobs {
+		jobRef, err := ref.GetReference(r.Scheme, &successfulJob)
+		if err != nil {
+			logger.Error(err, "unable to make reference to successful job", "job", successfulJob)
+			continue
 		}
-		for _, failedJob := range failedJobs {
-			jobRef, err := ref.GetReference(r.Scheme, failedJob)
-			if err != nil {
-				logger.Error(err, "unable to make reference to failed job", "job", failedJob)
-				continue
-			}
-			failedJobRefs = append(failedJobRefs, *jobRef)
+		successfulJobRefs = append(successfulJobRefs, *jobRef)
+	}
+	failedJobRefs := []corev1.ObjectReference{}
+	for _, failedJob := range failedJobs {
+		jobRef, err := ref.GetReference(r.Scheme, &failedJob)
+		if err != nil {
+			logger.Error(err, "unable to make reference to failed job", "job", failedJob)
+			continue
 		}
+		failedJobRefs = append(failedJobRefs, *jobRef)
 	}
 	logger.V(1).Info("job count", "active jobs", len(activeJobs),
 		"successful jobs", len(successfulJobs), "failed jobs", len(failedJobs), "total jobs", len(childJobs.Items))
