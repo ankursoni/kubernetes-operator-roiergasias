@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/tasks"
 	"go.uber.org/zap"
@@ -81,11 +82,16 @@ type Workflow struct {
 
 func (w *Workflow) Run() (err error) {
 	logger := w.Logger
+	if version, verErr := strconv.ParseFloat(w.Version, 32); verErr != nil || version != 1.0 {
+		err = fmt.Errorf("error as invalid version or unsupported version")
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
 	if len(w.TaskList) == 0 {
 		err = fmt.Errorf("error as no task list found")
 		logger.Error(err.Error(), zap.Error(err))
+		return
 	}
-
 	if len(w.EnvironmentList) > 0 {
 		logger.Debug("setting up workflow environment", zap.Any("environment list", w.EnvironmentList))
 		for j := range w.EnvironmentList {
@@ -100,7 +106,6 @@ func (w *Workflow) Run() (err error) {
 		}
 		logger.Debug("successfully set up workflow environment")
 	}
-
 	logger.Debug("setting up workflow tasks, steps and then run", zap.Any("task list", w.TaskList))
 	for i := range w.TaskList {
 		taskData := w.TaskList[i]
