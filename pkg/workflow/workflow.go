@@ -81,18 +81,25 @@ type Workflow struct {
 
 func (w *Workflow) Run() (err error) {
 	logger := w.Logger
-	logger.Debug("setting up workflow environment", zap.Any("environment list", w.EnvironmentList))
-	for j := range w.EnvironmentList {
-		environmentVariableList := w.EnvironmentList[j]
-		for k := range environmentVariableList {
-			if envErr := os.Setenv(k, environmentVariableList[k]); envErr != nil {
-				err = fmt.Errorf("error setting up workflow environment: %w", err)
-				logger.Error(err.Error(), zap.Error(err))
-				return
+	if len(w.TaskList) == 0 {
+		err = fmt.Errorf("error as no task list found")
+		logger.Error(err.Error(), zap.Error(err))
+	}
+
+	if len(w.EnvironmentList) > 0 {
+		logger.Debug("setting up workflow environment", zap.Any("environment list", w.EnvironmentList))
+		for j := range w.EnvironmentList {
+			environmentVariableList := w.EnvironmentList[j]
+			for k := range environmentVariableList {
+				if envErr := os.Setenv(k, environmentVariableList[k]); envErr != nil {
+					err = fmt.Errorf("error setting up workflow environment: %w", err)
+					logger.Error(err.Error(), zap.Error(err))
+					return
+				}
 			}
 		}
+		logger.Debug("successfully set up workflow environment")
 	}
-	logger.Debug("successfully set up workflow environment")
 
 	logger.Debug("setting up workflow tasks, steps and then run", zap.Any("task list", w.TaskList))
 	for i := range w.TaskList {
@@ -130,6 +137,9 @@ func (w *Workflow) Run() (err error) {
 
 func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 	logger := w.Logger
+	if len(w.TaskList) == 0 {
+		return
+	}
 	logger.Debug("splitting up nodes", zap.Any("task list", w.TaskList))
 	additionalEnvironmentList := []map[string]string{}
 	for i := range w.TaskList {
