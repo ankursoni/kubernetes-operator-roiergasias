@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	workflowv1 "github.com/ankursoni/kubernetes-operator-roiergasias/operator/api/v1"
+	wflib "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	wf "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/workflow"
 	"gopkg.in/yaml.v3"
 	batchv1 "k8s.io/api/batch/v1"
@@ -136,7 +137,13 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// check if split execution is needed in spec workflow yaml
-	wfYAML, err := wf.NewWorkflows(nil).NewWorkflowFromText(workflow.Spec.WorkflowYAML.YAML)
+	wfLogger, err := wflib.NewZapLogger(false)
+	if err != nil {
+		err = fmt.Errorf("error creating new zap logger: %w", err)
+		logger.Error(err, "error creating new zap logger for splitting nodes")
+		return ctrl.Result{}, err
+	}
+	wfYAML, err := wf.NewWorkflows(nil, wfLogger).NewWorkflowFromText(workflow.Spec.WorkflowYAML.YAML)
 	if err != nil {
 		err = fmt.Errorf("invalid spec.workflowYAML yaml with error %w", err)
 		logger.Error(err, "workflowYAML not proper in the spec")
