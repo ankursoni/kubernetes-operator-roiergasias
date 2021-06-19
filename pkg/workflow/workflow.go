@@ -25,11 +25,11 @@ var _ IWorkflows = &Workflows{}
 func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
 	logger.Debug("creating new workflows using dependencies", zap.Any("ITasks", t))
 	if t == nil {
-		workflows = &Workflows{Tasks: tasks.NewTasks(), Logger: logger}
+		workflows = &Workflows{Tasks: tasks.NewTasks(logger), Logger: logger}
 	} else {
 		workflows = &Workflows{Tasks: t, Logger: logger}
 	}
-	logger.Debug("created new workflows", zap.Any("Workflows", workflows))
+	logger.Debug("successfully created new workflows", zap.Any("Workflows", workflows))
 	return
 }
 
@@ -42,7 +42,7 @@ func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) 
 		logger.Error(err.Error(), zap.Error(err))
 		return
 	}
-	logger.Debug("parsing yaml text", zap.String("text", string(bytes)))
+	logger.Debug("parsing yaml text to workflow", zap.String("text", string(bytes)))
 	parseErr := yaml.Unmarshal(bytes, &workflow)
 	if parseErr != nil {
 		err = fmt.Errorf("error parsing yaml text: %w", parseErr)
@@ -50,21 +50,23 @@ func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) 
 		return
 	}
 	workflow.Tasks = w.Tasks
-	logger.Debug("successfully parsed yaml text", zap.Any("workflow", workflow))
+	workflow.Logger = w.Logger
+	logger.Debug("successfully parsed yaml text to workflow", zap.Any("workflow", workflow))
 	return
 }
 
 func (w Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
 	logger := w.Logger
-	logger.Debug("parsing yaml text", zap.String("path", text))
+	logger.Debug("parsing yaml text to workflow", zap.String("path", text))
 	parseErr := yaml.Unmarshal([]byte(text), &workflow)
 	if parseErr != nil {
 		err = fmt.Errorf("error parsing yaml text: %w", parseErr)
 		logger.Error(err.Error(), zap.Error(err))
 		return
 	}
-	logger.Debug("successfully parsed yaml text", zap.Any("workflow", workflow))
 	workflow.Tasks = w.Tasks
+	workflow.Logger = w.Logger
+	logger.Debug("successfully parsed yaml text to workflow", zap.Any("workflow", workflow))
 	return
 }
 
@@ -77,18 +79,22 @@ type Workflow struct {
 	Logger          *zap.Logger
 }
 
-func (w *Workflow) Run() error {
-	// setup workflow environment
+func (w *Workflow) Run() (err error) {
+	logger := w.Logger
+	logger.Debug("setting up workflow environment", zap.Any("environment list", w.EnvironmentList))
 	for j := range w.EnvironmentList {
 		environmentVariableList := w.EnvironmentList[j]
 		for k := range environmentVariableList {
-			if err := os.Setenv(k, environmentVariableList[k]); err != nil {
-				return fmt.Errorf("error setting up workflow environment: %w", err)
+			if envErr := os.Setenv(k, environmentVariableList[k]); envErr != nil {
+				err = fmt.Errorf("error setting up workflow environment: %w", err)
+				logger.Error(err.Error(), zap.Error(err))
+				return
 			}
 		}
 	}
+	logger.Debug("successfully set up workflow environment")
 
-	// setup workflow tasks and steps
+	logger.Debug("setting up workflow tasks, steps and then run", zap.Any("task list", w.TaskList))
 	for i := range w.TaskList {
 		taskData := w.TaskList[i]
 		var node string
@@ -106,15 +112,20 @@ func (w *Workflow) Run() error {
 		for k := range stepList {
 			step := stepList[k].(map[string]interface{})
 			task := w.Tasks.NewTask(taskType, step, node)
-			if err := task.Run(); err != nil {
-				return fmt.Errorf("error running task: %w", err)
+			if runErr := task.Run(); runErr != nil {
+				err = fmt.Errorf("error running task: %w", runErr)
+				logger.Error(err.Error(), zap.Error(err))
+				return
 			}
 		}
 	}
-	return nil
+	logger.Debug("successfully set up workflow tasks, steps and then ran")
+	return
 }
 
 func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
+	logger := w.Logger
+	logger.Debug("splitting up nodes", zap.Any("task list", w.TaskList))
 	additionalEnvironmentList := []map[string]string{}
 	for i := range w.TaskList {
 		taskData := w.TaskList[i]
@@ -129,7 +140,11 @@ func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 			}
 		}
 
-		if node != "" {
+		if node == "" {
+			newWorkflowList = nil
+			logger.Debug("failed split up nodes as node value not found", zap.Any("task data", taskData))
+			return
+		} else {
 			newWf := &Workflow{
 				Version:         w.Version,
 				EnvironmentList: w.EnvironmentList,
@@ -159,10 +174,8 @@ func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 				additionalEnvironmentList = append(additionalEnvironmentList, taskAdditionalEnvironmentList[p])
 			}
 			newWorkflowList = append(newWorkflowList, *newWf)
-		} else {
-			newWorkflowList = nil
-			return
 		}
 	}
+	logger.Debug("successfully split up nodes", zap.Any("workflow list", newWorkflowList))
 	return
 }
