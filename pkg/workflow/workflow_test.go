@@ -16,7 +16,7 @@ import (
 )
 
 var _ = Describe("test workflow for hello world", func() {
-	Context("given single task and single step workflow from text", func() {
+	Context("given single task and single step workflow", func() {
 		var (
 			logger         *zap.Logger
 			text           string
@@ -143,6 +143,45 @@ task:
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(out)).To(Equal("Hello World!\nWelcome to the demo workflow!\nWarm greetings!\n"))
+		})
+	})
+
+	Context("given invalid tasks and steps", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 1.0
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:
+  - sequential:
+      - invalid:
+          - "Hello World!"
+  - invalid:
+      - print:
+          - "{{env:welcome}}"`
+		})
+
+		It("create new workflow, call split nodes and run", func() {
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			splitNodesList := w.SplitNodes()
+			Expect(splitNodesList).To(BeEmpty())
+
+			err = w.Run()
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })
