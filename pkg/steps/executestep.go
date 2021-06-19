@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,6 +18,8 @@ type ExecuteStep struct {
 }
 
 func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
+	logger := step.Logger
+	logger.Debug("creating new execute step")
 	commandList := []string{}
 	for k := range step.StepArgumentList {
 		commandList = append(commandList, step.StepArgumentList[k].(string))
@@ -26,10 +29,13 @@ func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
 		CommandList: commandList,
 		Step:        *step,
 	}
+	logger.Debug("successfully created new execute step")
 	return
 }
 
 func (executeStep *ExecuteStep) Run() (err error) {
+	logger := executeStep.Logger
+	logger.Debug("started running execute step", zap.Any("command list", executeStep.CommandList))
 	for command := range executeStep.CommandList {
 		cmdWithArgs := strings.SplitAfter(executeStep.CommandList[command], " ")
 		for k := range cmdWithArgs {
@@ -46,5 +52,6 @@ func (executeStep *ExecuteStep) Run() (err error) {
 		}
 	}
 	err = executeStep.Step.Run()
+	logger.Debug("successfully ran execute step")
 	return
 }

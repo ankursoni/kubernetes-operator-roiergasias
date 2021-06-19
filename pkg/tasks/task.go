@@ -18,7 +18,7 @@ var _ ITasks = &Tasks{}
 
 func NewTasks(logger *zap.Logger) (tasks ITasks) {
 	logger.Debug("creating new tasks")
-	tasks = &Tasks{SequentialTasks: NewSequentialTasks(), Logger: logger}
+	tasks = &Tasks{SequentialTasks: NewSequentialTasks(logger), Logger: logger}
 	logger.Debug("successfully created new tasks")
 	return
 }
@@ -28,7 +28,8 @@ type ITaskWorkflow interface {
 }
 
 type Task struct {
-	Node string
+	Node   string
+	Logger *zap.Logger
 }
 
 func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node string) (task ITaskWorkflow) {
@@ -56,16 +57,9 @@ func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node s
 	switch taskType {
 	case "sequential":
 		sequentialSteps := []steps.IStepWorkflow{}
-		logger.Debug("creating new step for sequential task", zap.String("step type", stepType),
-			zap.Any("step arguments", stepArguments), zap.Any("other step arguments", otherStepArguments))
-		step := steps.NewStep(stepType, stepArguments, otherStepArguments)
-		logger.Debug("successfully created new step for sequential task")
-
+		step := steps.NewStep(stepType, stepArguments, otherStepArguments, logger)
 		sequentialSteps = append(sequentialSteps, step)
-		logger.Debug("creating new sequential task", zap.Any("sequential steps", sequentialSteps),
-			zap.String("node", node))
 		task = t.SequentialTasks.NewSequentialTask(sequentialSteps, node)
-		logger.Debug("successfully created new sequential task")
 	}
 	logger.Debug("successfully created new task")
 	return

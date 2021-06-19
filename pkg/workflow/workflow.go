@@ -16,8 +16,8 @@ type IWorkflows interface {
 }
 
 type Workflows struct {
-	Logger *zap.Logger
 	Tasks  tasks.ITasks
+	Logger *zap.Logger
 }
 
 var _ IWorkflows = &Workflows{}
