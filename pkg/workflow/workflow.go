@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/tasks"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,29 +16,54 @@ type IWorkflows interface {
 }
 
 type Workflows struct {
-	Tasks tasks.ITasks
+	Logger *zap.Logger
+	Tasks  tasks.ITasks
 }
 
 var _ IWorkflows = &Workflows{}
 
-func NewWorkflows(t tasks.ITasks) (workflows IWorkflows) {
+func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
+	logger.Debug("creating new workflows using dependencies", zap.Any("ITasks", t))
 	if t == nil {
-		workflows = &Workflows{Tasks: tasks.NewTasks()}
+		workflows = &Workflows{Tasks: tasks.NewTasks(), Logger: logger}
 	} else {
-		workflows = &Workflows{Tasks: t}
+		workflows = &Workflows{Tasks: t, Logger: logger}
 	}
+	logger.Debug("created new workflows", zap.Any("Workflows", workflows))
 	return
 }
 
 func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) {
-	bytes, _ := ioutil.ReadFile(filePath)
-	err = yaml.Unmarshal(bytes, &workflow)
+	logger := w.Logger
+	logger.Debug("reading yaml file", zap.String("path", filePath))
+	bytes, readErr := ioutil.ReadFile(filePath)
+	if readErr != nil {
+		err = fmt.Errorf("error reading yaml file: %w", readErr)
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
+	logger.Debug("parsing yaml text", zap.String("text", string(bytes)))
+	parseErr := yaml.Unmarshal(bytes, &workflow)
+	if parseErr != nil {
+		err = fmt.Errorf("error parsing yaml text: %w", parseErr)
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
 	workflow.Tasks = w.Tasks
+	logger.Debug("successfully parsed yaml text", zap.Any("workflow", workflow))
 	return
 }
 
 func (w Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
-	err = yaml.Unmarshal([]byte(text), &workflow)
+	logger := w.Logger
+	logger.Debug("parsing yaml text", zap.String("path", text))
+	parseErr := yaml.Unmarshal([]byte(text), &workflow)
+	if parseErr != nil {
+		err = fmt.Errorf("error parsing yaml text: %w", parseErr)
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
+	logger.Debug("successfully parsed yaml text", zap.Any("workflow", workflow))
 	workflow.Tasks = w.Tasks
 	return
 }
@@ -47,7 +73,8 @@ type Workflow struct {
 	EnvironmentList []map[string]string      `yaml:"environment,omitempty"`
 	TaskList        []map[string]interface{} `yaml:"task,omitempty"`
 	Node            string                   `yaml:",omitempty"`
-	Tasks           tasks.ITasks             `yaml:",omitempty"`
+	Tasks           tasks.ITasks
+	Logger          *zap.Logger
 }
 
 func (w *Workflow) Run() error {

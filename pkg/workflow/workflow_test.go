@@ -1,18 +1,24 @@
 package workflow_test
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/mocks"
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/workflow"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"io/ioutil"
-	"os"
+	"go.uber.org/zap"
 )
 
 var _ = Describe("test workflow for hello world", func() {
 	Context("given single task and single step workflow from text", func() {
 		var (
+			logger         *zap.Logger
 			text           string
 			t              *mocks.MockITasks
 			tw             *mocks.MockITaskWorkflow
@@ -20,6 +26,12 @@ var _ = Describe("test workflow for hello world", func() {
 		)
 
 		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
 			text = `
 version: 1.0
 environment:
@@ -35,7 +47,7 @@ task:
 
 		It("create new workflow and run with task mock", func() {
 			t.EXPECT().NewTask(gomock.Eq("sequential"), gomock.Any(), gomock.Eq("")).Return(tw)
-			w, err := workflow.NewWorkflows(t).NewWorkflowFromText(text)
+			w, err := workflow.NewWorkflows(t, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
@@ -44,7 +56,7 @@ task:
 			Expect(err).ToNot(HaveOccurred())
 		})
 		It("create new workflow and run", func() {
-			w, err := workflow.NewWorkflows(nil).NewWorkflowFromText(text)
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
@@ -69,10 +81,17 @@ task:
 
 	Context("given 2 sequential tasks with node specifications", func() {
 		var (
-			text string
+			logger *zap.Logger
+			text   string
 		)
 
 		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
 			text = `
 version: 1.0
 environment:
@@ -93,7 +112,7 @@ task:
 		})
 
 		It("create new workflow, call split nodes and run", func() {
-			w, err := workflow.NewWorkflows(nil).NewWorkflowFromText(text)
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
