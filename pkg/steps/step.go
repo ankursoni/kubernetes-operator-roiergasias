@@ -1,7 +1,7 @@
 package steps
 
 import (
-	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 )
 
 type Step struct {
@@ -10,7 +10,7 @@ type Step struct {
 }
 
 type IStepWorkflow interface {
-	Run()
+	Run() error
 }
 
 func NewStep(stepType string, stepArguments []interface{}, otherStepArguments map[string]interface{}) (step IStepWorkflow) {
@@ -32,6 +32,7 @@ func NewStep(stepType string, stepArguments []interface{}, otherStepArguments ma
 	return
 }
 
-func (step *Step) Run() {
-	lib.SetEnvironmentVariables(step.SetEnvironmentList)
+func (step *Step) Run() (err error) {
+	err = lib.SetEnvironmentVariables(step.SetEnvironmentList)
+	return
 }

@@ -17,5 +17,5 @@ task:
   - sequential:
       - print:
           - "{{env:welcome}}"
-      - print:
-          - "{{env:greeting}}"
+      - execute:
+          - "echo {{env:greeting}}"

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/steps"
 )
 
@@ -31,9 +32,12 @@ type SequentialTask struct {
 
 var _ ITaskWorkflow = &SequentialTask{}
 
-func (task *SequentialTask) Run() error {
+func (task *SequentialTask) Run() (err error) {
 	for k := range task.Steps {
-		task.Steps[k].Run()
+		if taskErr := task.Steps[k].Run(); taskErr != nil {
+			err = fmt.Errorf("error running task: %w", taskErr)
+			return
+		}
 	}
-	return nil
+	return
 }

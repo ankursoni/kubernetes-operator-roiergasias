@@ -1,15 +1,20 @@
 package lib
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
 )
 
-func SetEnvironmentVariables(inputList map[string]interface{}) {
+func SetEnvironmentVariables(inputList map[string]interface{}) (err error) {
 	for k := range inputList {
-		os.Setenv(k, inputList[k].(string))
+		if envErr := os.Setenv(k, inputList[k].(string)); envErr != nil {
+			err = fmt.Errorf("error setting environment: %w", envErr)
+			return
+		}
 	}
+	return
 }
 
 func ResolveEnvironmentVariables(inputList []string) (outputList []string) {

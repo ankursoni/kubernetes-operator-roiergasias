@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 )
 
 var _ IStepWorkflow = &ExecuteStep{}
@@ -29,7 +29,7 @@ func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
 	return
 }
 
-func (executeStep *ExecuteStep) Run() {
+func (executeStep *ExecuteStep) Run() (err error) {
 	for command := range executeStep.CommandList {
 		cmdWithArgs := strings.SplitAfter(executeStep.CommandList[command], " ")
 		for k := range cmdWithArgs {
@@ -40,9 +40,11 @@ func (executeStep *ExecuteStep) Run() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stdout
 
-		if err := cmd.Run(); err != nil {
-			fmt.Println("Error: ", err)
+		if cmdErr := cmd.Run(); cmdErr != nil {
+			err = fmt.Errorf("error executing step: %w", cmdErr)
+			return
 		}
 	}
-	executeStep.Step.Run()
+	err = executeStep.Step.Run()
+	return
 }

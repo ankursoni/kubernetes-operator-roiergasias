@@ -3,7 +3,7 @@ package steps
 import (
 	"fmt"
 
-	"github.com/ankursoni/kubernetes-operator-roiergasias/lib"
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 )
 
 var _ IStepWorkflow = &PrintStep{}
@@ -26,9 +26,13 @@ func (step *Step) NewPrintStep() (printStep *PrintStep) {
 	return
 }
 
-func (printStep *PrintStep) Run() {
+func (printStep *PrintStep) Run() (err error) {
 	for message := range printStep.MessageList {
-		fmt.Println(printStep.MessageList[message])
+		if _, printErr := fmt.Println(printStep.MessageList[message]); err != nil {
+			err = fmt.Errorf("error printing step: %w", printErr)
+			return
+		}
 	}
-	printStep.Step.Run()
+	err = printStep.Step.Run()
+	return
 }

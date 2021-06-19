@@ -318,7 +318,7 @@ func (r *WorkflowReconciler) constructJobForWorkflow(workflow *workflowv1.Workfl
 	)
 	if node != "" {
 		job.Annotations["node"] = node
-		job.Spec.Template.Spec.NodeSelector = map[string]string{"node": node}
+		job.Spec.Template.Spec.NodeSelector = map[string]string{"node.roiergasias": node}
 	}
 	if err := ctrl.SetControllerReference(workflow, job, r.Scheme); err != nil {
 		return nil, err

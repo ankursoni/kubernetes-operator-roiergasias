@@ -66,8 +66,8 @@ spec:
         - sequential:
             - print:
                 - "{{env:welcome}}"
-            - print:
-                - "{{env:greeting}}"
+            - execute:
+                - "echo {{env:greeting}}"
       
   jobTemplate:
     spec:
