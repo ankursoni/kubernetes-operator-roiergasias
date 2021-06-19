@@ -47,7 +47,7 @@ spec:
   workflowYAML:
     name: hello-world
     yaml: |
-      version: 1.0
+      version: 0.1
 
       environment:
         - welcome: "Welcome to the demo workflow!"

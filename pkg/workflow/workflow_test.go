@@ -33,7 +33,7 @@ var _ = Describe("test workflow for hello world", func() {
 				return
 			}
 			text = `
-version: 1.0
+version: 0.1
 environment:
   - welcome: "Welcome to the demo workflow!"
 task:
@@ -93,7 +93,7 @@ task:
 				return
 			}
 			text = `
-version: 1.0
+version: 0.1
 environment:
   - welcome: "Welcome to the demo workflow!"
 task:
@@ -160,7 +160,7 @@ task:
 				return
 			}
 			text = `
-version: 1.0
+version: 0.1
 environment:
   - welcome: "Welcome to the demo workflow!"
 task:

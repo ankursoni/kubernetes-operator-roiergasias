@@ -3,6 +3,7 @@ package workflow
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 
@@ -82,8 +83,8 @@ type Workflow struct {
 
 func (w *Workflow) Run() (err error) {
 	logger := w.Logger
-	if version, verErr := strconv.ParseFloat(w.Version, 32); verErr != nil || version != 1.0 {
-		err = fmt.Errorf("error as invalid version or unsupported version")
+	if version, verErr := strconv.ParseFloat(w.Version, 32); verErr != nil || math.Round(version*10)/10 != 0.1 {
+		err = fmt.Errorf("error as invalid version or unsupported version (not 0.1)")
 		logger.Error(err.Error(), zap.Error(err))
 		return
 	}
