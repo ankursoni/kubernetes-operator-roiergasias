@@ -56,10 +56,13 @@ func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node s
 
 	switch taskType {
 	case "sequential":
-		sequentialSteps := []steps.IStepWorkflow{}
 		step := steps.NewStep(stepType, stepArguments, otherStepArguments, logger)
-		sequentialSteps = append(sequentialSteps, step)
-		task = t.SequentialTasks.NewSequentialTask(sequentialSteps, node)
+		if step == nil {
+			return nil
+		}
+		task = t.SequentialTasks.NewSequentialTask([]steps.IStepWorkflow{step}, node)
+	default:
+		return nil
 	}
 	logger.Debug("successfully created new task")
 	return

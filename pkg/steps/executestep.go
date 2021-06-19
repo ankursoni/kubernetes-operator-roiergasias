@@ -48,6 +48,7 @@ func (executeStep *ExecuteStep) Run() (err error) {
 
 		if cmdErr := cmd.Run(); cmdErr != nil {
 			err = fmt.Errorf("error executing step: %w", cmdErr)
+			logger.Error(err.Error(), zap.Error(err))
 			return
 		}
 	}

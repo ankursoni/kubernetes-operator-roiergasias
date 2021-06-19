@@ -33,6 +33,8 @@ func NewStep(stepType string, stepArguments []interface{}, otherStepArguments ma
 		step = newStep.NewPrintStep()
 	case "execute":
 		step = newStep.NewExecuteStep()
+	default:
+		return nil
 	}
 	logger.Debug("successfully created new step")
 	return

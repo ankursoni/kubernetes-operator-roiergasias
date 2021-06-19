@@ -112,6 +112,11 @@ func (w *Workflow) Run() (err error) {
 		for k := range stepList {
 			step := stepList[k].(map[string]interface{})
 			task := w.Tasks.NewTask(taskType, step, node)
+			if task == nil {
+				err = fmt.Errorf("error creating new task type as invalid task type or step type")
+				logger.Error(err.Error(), zap.Error(err))
+				return
+			}
 			if runErr := task.Run(); runErr != nil {
 				err = fmt.Errorf("error running task: %w", runErr)
 				logger.Error(err.Error(), zap.Error(err))

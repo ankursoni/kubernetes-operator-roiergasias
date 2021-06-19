@@ -33,8 +33,9 @@ func (printStep *PrintStep) Run() (err error) {
 	logger := printStep.Logger
 	logger.Debug("started running print step", zap.Any("message list", printStep.MessageList))
 	for message := range printStep.MessageList {
-		if _, printErr := fmt.Println(printStep.MessageList[message]); err != nil {
+		if _, printErr := fmt.Println(printStep.MessageList[message]); printErr != nil {
 			err = fmt.Errorf("error printing step: %w", printErr)
+			logger.Error(err.Error(), zap.Error(err))
 			return
 		}
 	}
