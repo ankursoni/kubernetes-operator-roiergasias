@@ -192,24 +192,13 @@ kubectl delete -f machine-learning-job-manifest.yaml
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# change to the operator directory
-cd operator
-
-# optionally, download go module dependencies to local cache
-go mod tidy && go mod download
-
-# build the operator docker image and push to docker hub
-make docker-build docker-push IMG=docker.io/<REPOSITORY>/roiergasias:operator
-# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-# make docker-build docker-push IMG=docker.io/ankursoni/roiergasias:operator
-
-# deploy the operator to kubernetes
-make deploy IMG=docker.io/<REPOSITORY>/roiergasias:operator
-# where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-# make deploy IMG=docker.io/ankursoni/roiergasias:operator
+# install the operator
+helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
+  --version v0.1.0 \
+  roiergasias-operator roiergasias-operator
 
 # change to the cmd/machine-leaning directory
-cd ../cmd/machine-learning
+cd cmd/machine-learning
 
 # create a new helm chart values override file: ./helm/roiergasias-workflow/values-secret.yaml
 cp ./helm/roiergasias-workflow/values.yaml ./helm/roiergasias-workflow/values-secret.yaml
@@ -375,19 +364,18 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to manually run go workflow via kubernetes operator (after provisioning AWS infrastructure and pushing docker image for AWS as mentioned above)
+## Steps to run go workflow via kubernetes operator (after provisioning AWS infrastructure and pushing docker image for AWS as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# change to the operator directory
-cd operator
-
-# deploy the operator to kubernetes
-make deploy IMG=docker.io/ankursoni/roiergasias-operator:latest
+# install the operator
+helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
+  --version v0.1.0 \
+  roiergasias-operator roiergasias-operator
 
 # change to the cmd/machine-leaning directory
-cd ../cmd/machine-learning
+cd cmd/machine-learning
 
 # upload the workflow yaml and python script files
 # assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
@@ -395,77 +383,11 @@ aws s3 cp process-data.py s3://roiergasias-demo-s3b01/
 aws s3 cp train-model.py s3://roiergasias-demo-s3b01/
 aws s3 cp evaluate-model.py s3://roiergasias-demo-s3b01/
 
-# create a new helm chart values override file: ./helm/roiergasias-aws-manual/values-secret.yaml
-cp ./helm/roiergasias-aws-manual/values.yaml ./helm/roiergasias-aws-manual/values-secret.yaml
+# create a new helm chart values override file: ./helm/roiergasias-aws/values-secret.yaml
+cp ./helm/roiergasias-aws/values.yaml ./helm/roiergasias-aws/values-secret.yaml
 
-# update the values in ./helm/roiergasias-aws-manual/values-secret.yaml using nano or vi editor
-nano ./helm/roiergasias-aws-manual/values-secret.yaml
-# update "image" to be "docker.io/<REPOSITORY>/roiergasias:local"
-#   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
-#          "docker.io/ankursoni/roiergasias:local"
-# update "s3URI" to be "s3://<PREFIX>-<ENVIRONMENT>-s3b01/",
-#   where, <PREFIX> and <ENVIRONMENT> were set in the infra/aws/values-secret.tfvars, for e.g.,
-#          "s3://roiergasias-demo-s3b01/"
-# update "enablePersistentVolume" to be either 0 (default) or 1 to turn OFF or ON the persistent volume from elastic file system (EFS)
-#   it gives persistence to the data written by steps in the workflow. Regardless of value, each sequential task syncs up to the S3 at the end of each stage.
-# update "efsId" by running the command and copying the second value from output:
-#   aws --region <REGION> efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep <PREFIX>-<ENVIRONMENT>-efs01, for e.g.,
-# aws --region ap-southeast-2 efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep roiergasias-demo-efs01
-
-# output helm chart template for roiergasias aws manual
-helm template \
-  -n roiergasias \
-  -f ./helm/roiergasias-aws-manual/values-secret.yaml \
-  roiergasias-aws-manual ./helm/roiergasias-aws-manual >machine-learning-aws-manual-manifest.yaml
-
-# explore the contents of the machine-learning-aws-manual-manifest.yaml
-cat machine-learning-aws-manual-manifest.yaml
-
-# apply the manifest
-kubectl apply -f machine-learning-aws-manual-manifest.yaml
-
-# browse pod created by the job
-kubectl get pods -n roiergasias
-
-# check pod logs for the output
-kubectl logs roiergasias-aws-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
-
-# delete the manifest
-kubectl delete -f machine-learning-aws-manual-manifest.yaml
-
-# change to the operator directory
-cd ../../operator
-
-# undeploy the operator
-make undeploy
-```
-
-
-## Steps to automatically run go workflow via kubernetes operator (after provisioning AWS infrastructure and pushing docker image for AWS as mentioned above)
-``` SH
-# change to the local git directory
-cd kubernetes-operator-roiergasias
-
-# change to the operator directory
-cd operator
-
-# install the operator in kubernetes
-helm install roiergasias-operator ./helm/roiergasias-operator
-
-# change to the cmd/machine-leaning directory
-cd ../cmd/machine-learning
-
-# upload the workflow yaml and python script files
-# assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
-aws s3 cp process-data.py s3://roiergasias-demo-s3b01/
-aws s3 cp train-model.py s3://roiergasias-demo-s3b01/
-aws s3 cp evaluate-model.py s3://roiergasias-demo-s3b01/
-
-# create a new helm chart values override file: ./helm/roiergasias-aws-auto/values-secret.yaml
-cp ./helm/roiergasias-aws-auto/values.yaml ./helm/roiergasias-aws-auto/values-secret.yaml
-
-# update the values in ./helm/roiergasias-aws-auto/values-secret.yaml using nano or vi editor
-nano ./helm/roiergasias-aws-auto/values-secret.yaml
+# update the values in ./helm/roiergasias-aws/values-secret.yaml using nano or vi editor
+nano ./helm/roiergasias-aws/values-secret.yaml
 # update "image" to be "docker.io/<REPOSITORY>/roiergasias:local"
 #   where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
 #          "docker.io/ankursoni/roiergasias:local"
@@ -481,14 +403,14 @@ nano ./helm/roiergasias-aws-auto/values-secret.yaml
 # output helm chart template for roiergasias aws auto
 helm template \
   -n roiergasias \
-  -f ./helm/roiergasias-aws-auto/values-secret.yaml \
-  roiergasias-aws-auto ./helm/roiergasias-aws-auto >machine-learning-aws-auto-manifest.yaml
+  -f ./helm/roiergasias-aws/values-secret.yaml \
+  roiergasias-aws ./helm/roiergasias-aws >machine-learning-aws-manifest.yaml
 
-# explore the contents of the machine-learning-aws-auto-manifest.yaml
-cat machine-learning-aws-auto-manifest.yaml
+# explore the contents of the machine-learning-aws-manifest.yaml
+cat machine-learning-aws-manifest.yaml
 
 # apply the manifest
-kubectl apply -f machine-learning-aws-auto-manifest.yaml
+kubectl apply -f machine-learning-aws-manifest.yaml
 
 # browse pod created by the job
 kubectl get pods -n roiergasias
@@ -497,7 +419,7 @@ kubectl get pods -n roiergasias
 kubectl logs roiergasias-aws-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # delete the manifest
-kubectl delete -f machine-learning-aws-auto-manifest.yaml
+kubectl delete -f machine-learning-aws-manifest.yaml
 
 # uninstall the operator
 helm uninstall roiergasias-operator
