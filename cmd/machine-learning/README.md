@@ -187,7 +187,7 @@ kubectl delete -f machine-learning-job-manifest.yaml
 ```
 
 
-## Steps to manually run go workflow via kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to run go workflow via kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias

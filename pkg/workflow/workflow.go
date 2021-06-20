@@ -2,7 +2,9 @@ package workflow
 
 import (
 	"fmt"
+	wflib "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"io/ioutil"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -25,6 +27,15 @@ type Workflows struct {
 var _ IWorkflows = &Workflows{}
 
 func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
+	if logger == nil {
+		newLogger, err := wflib.NewZapLogger(false)
+		if err != nil {
+			log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+			return
+		} else {
+			logger = newLogger
+		}
+	}
 	logger.Debug("creating new workflows using dependencies", zap.Any("ITasks", t))
 	if t == nil {
 		workflows = &Workflows{Tasks: tasks.NewTasks(logger), Logger: logger}
