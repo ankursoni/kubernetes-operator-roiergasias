@@ -4,6 +4,10 @@ metadata:
   name: roiergasias-workflow
   namespace: {{ .Values.namespace }}
 spec:
+  workflowYAML:
+    name: machine-learning
+    yaml: |
+{{ .Files.Get "machine-learning.yaml" | indent 6 }}
   jobTemplate:
     spec:
       backoffLimit: 3
@@ -16,8 +20,11 @@ spec:
               image: docker.io/ankursoni/roiergasias:local
               command: ["./cmd/main", "./cmd/machine-learning/machine-learning.yaml"]
               volumeMounts:
-                - name: machine-learning
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
+                - name: yaml
                   mountPath: /root/cmd/machine-learning
+                - name: machine-learning-data
+                  mountPath: /root/cmd/machine-learning-data
               resources:
                 requests:
                   memory: "250Mi"
@@ -27,7 +34,7 @@ spec:
                   cpu: "1000m"
           restartPolicy: Never
           volumes:
-            - name: machine-learning
+            - name: machine-learning-data
               hostPath:
                 path: {{ .Values.hostPath }}
                 type: Directory

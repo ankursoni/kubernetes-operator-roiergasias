@@ -77,8 +77,8 @@ type Workflow struct {
 	EnvironmentList []map[string]string      `yaml:"environment,omitempty"`
 	TaskList        []map[string]interface{} `yaml:"task,omitempty"`
 	Node            string                   `yaml:",omitempty"`
-	Tasks           tasks.ITasks
-	Logger          *zap.Logger
+	Tasks           tasks.ITasks             `yaml:",omitempty"`
+	Logger          *zap.Logger              `yaml:",omitempty"`
 }
 
 func (w *Workflow) Run() (err error) {
