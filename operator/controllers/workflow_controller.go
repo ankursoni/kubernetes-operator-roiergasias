@@ -41,7 +41,7 @@ type WorkflowReconciler struct {
 //+kubebuilder:rbac:groups=batch.ankursoni.github.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch.ankursoni.github.io,resources=workflows/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=batch.ankursoni.github.io,resources=workflows/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=configMaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get
 
