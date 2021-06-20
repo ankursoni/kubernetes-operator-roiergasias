@@ -37,7 +37,7 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - workflowv1.ankursoni.github.io
+  - batch.ankursoni.github.io
   resources:
   - workflows
   verbs:
@@ -49,13 +49,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - workflowv1.ankursoni.github.io
+  - batch.ankursoni.github.io
   resources:
   - workflows/finalizers
   verbs:
   - update
 - apiGroups:
-  - workflowv1.ankursoni.github.io
+  - batch.ankursoni.github.io
   resources:
   - workflows/status
   verbs:

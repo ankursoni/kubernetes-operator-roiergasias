@@ -2,11 +2,11 @@ apiVersion: v1
 entries:
   roiergasias-operator:
   - apiVersion: v2
-    created: "2021-06-20T14:14:20.982356+10:00"
+    created: "2021-06-20T15:12:07.590059+10:00"
     description: Helm chart for roiergasias operator
-    digest: eb862bdf0c6b41622ac69c1c683906c6bf277f52d74c272828ac4c55ace865ca
+    digest: 80ddcbf6848f6325f9f49d847a612a7bd95ad0e414fa73400ad2d53b9d52a2e2
     name: roiergasias-operator
     urls:
     - https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/roiergasias-operator-v0.1.0.tgz
     version: v0.1.0
-generated: "2021-06-20T14:14:20.980362+10:00"
+generated: "2021-06-20T15:12:07.587146+10:00"
