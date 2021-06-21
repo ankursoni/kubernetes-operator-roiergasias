@@ -24,8 +24,6 @@ type Workflows struct {
 	Logger *zap.Logger
 }
 
-var _ IWorkflows = &Workflows{}
-
 func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
 	if logger == nil {
 		newLogger, err := wflib.NewZapLogger(false)

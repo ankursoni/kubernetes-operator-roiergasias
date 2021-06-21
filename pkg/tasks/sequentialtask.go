@@ -14,8 +14,6 @@ type SequentialTasks struct {
 	Logger *zap.Logger
 }
 
-var _ ISequentialTasks = &SequentialTasks{}
-
 func NewSequentialTasks(logger *zap.Logger) (sequentialTasks ISequentialTasks) {
 	logger.Debug("creating new sequential tasks")
 	sequentialTasks = &SequentialTasks{Logger: logger}
