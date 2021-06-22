@@ -306,10 +306,6 @@ terraform apply -var-file=values-secret.tfvars
 # get kubectl credentials
 aws eks update-kubeconfig --region <REGION> --name <PREFIX>-<ENVIRONMENT>-eks01
 # for e.g., aws eks update-kubeconfig --region ap-southeast-2 --name roiergasias-demo-eks01
-
-# patch coredns to use fargate
-kubectl patch deployment coredns -n kube-system --type json \
--p='[{"op": "remove", "path": "/spec/template/metadata/annotations/eks.amazonaws.com~1compute-type"}]'
 ```
 
 
