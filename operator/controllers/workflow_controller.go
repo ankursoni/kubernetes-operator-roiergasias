@@ -148,7 +148,7 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, nil
 		}
 
-		configMap, err := r.constructConfigMapForWorkflow(&workflow, workflow.Spec.WorkflowYAML.YAML, "")
+		configMap, err := r.constructConfigMapForWorkflow(&workflow, workflow.Spec.WorkflowYAML.YAML, 0, "")
 		if err != nil {
 			logger.Error(err, "unable to construct configMap from template")
 			return ctrl.Result{}, nil
@@ -159,7 +159,7 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		logger.V(1).Info("created configMap for workflow", "configMap", configMap)
 
-		job, err := r.constructJobForWorkflow(&workflow, configMap, "")
+		job, err := r.constructJobForWorkflow(&workflow, configMap, 0, "")
 		if err != nil {
 			logger.Error(err, "unable to construct job from template")
 			return ctrl.Result{}, nil
@@ -180,7 +180,7 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				}
 			}
 			yamlBytes, _ := yaml.Marshal(splitWf)
-			configMap, err := r.constructConfigMapForWorkflow(&workflow, string(yamlBytes), splitWf.Node)
+			configMap, err := r.constructConfigMapForWorkflow(&workflow, string(yamlBytes), k+1, splitWf.Node)
 			if err != nil {
 				logger.Error(err, "unable to construct configMap from split node template")
 				return ctrl.Result{}, nil
@@ -191,7 +191,7 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 			logger.V(1).Info("created configMap for workflow", "configMap", configMap)
 
-			job, err := r.constructJobForWorkflow(&workflow, configMap, splitWf.Node)
+			job, err := r.constructJobForWorkflow(&workflow, configMap, k+1, splitWf.Node)
 			if err != nil {
 				logger.Error(err, "unable to construct job from split node template")
 				return ctrl.Result{}, nil
@@ -249,13 +249,13 @@ func (r *WorkflowReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1.JobC
 
 // +kubebuilder:docs-gen:collapse=isJobFinished
 
-func (r *WorkflowReconciler) constructConfigMapForWorkflow(workflow *workflowv1.Workflow, yamlText string, node string) (
+func (r *WorkflowReconciler) constructConfigMapForWorkflow(workflow *workflowv1.Workflow, yamlText string, taskNumber int, node string) (
 	*corev1.ConfigMap, error) {
 	name := ""
 	if node == "" {
 		name = fmt.Sprintf("%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name)
 	} else {
-		name = fmt.Sprintf("%s-%s-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name, node)
+		name = fmt.Sprintf("%s-%s-%d-%s", workflow.Name, workflow.Spec.WorkflowYAML.Name, taskNumber, node)
 	}
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -275,12 +275,12 @@ func (r *WorkflowReconciler) constructConfigMapForWorkflow(workflow *workflowv1.
 // +kubebuilder:docs-gen:collapse=constructConfigMapForWorkflow
 
 func (r *WorkflowReconciler) constructJobForWorkflow(workflow *workflowv1.Workflow, configMap *corev1.ConfigMap,
-	node string) (*batchv1.Job, error) {
+	taskNumber int, node string) (*batchv1.Job, error) {
 	name := ""
 	if node == "" {
 		name = workflow.Name
 	} else {
-		name = fmt.Sprintf("%s-%s", workflow.Name, node)
+		name = fmt.Sprintf("%s-%d-%s", workflow.Name, taskNumber, node)
 	}
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{

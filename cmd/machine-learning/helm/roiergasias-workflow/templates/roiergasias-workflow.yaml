@@ -26,12 +26,9 @@ spec:
                 - name: machine-learning-data
                   mountPath: /root/cmd/machine-learning-data
               resources:
-                requests:
-                  memory: "250Mi"
-                  cpu: "500m"
                 limits:
-                  memory: "500Mi"
-                  cpu: "1000m"
+                  memory: "1000Mi"
+                  cpu: "2000m"
           restartPolicy: Never
           volumes:
             - name: machine-learning-data

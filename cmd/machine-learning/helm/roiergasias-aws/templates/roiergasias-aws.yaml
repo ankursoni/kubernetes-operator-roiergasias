@@ -23,6 +23,7 @@ spec:
                 - name: s3-bucket-uri
                   value: "{{ .Values.aws.s3URI }}"
               volumeMounts:
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
                   mountPath: /root/cmd/machine-learning
                 {{- if .Values.aws.enablePersistentVolume }}
@@ -32,13 +33,6 @@ spec:
                 - name: ed
                   mountPath: /root/cmd/machine-learning-output
                 {{- end }}
-              resources:
-                requests:
-                  memory: "250Mi"
-                  cpu: "500m"
-                limits:
-                  memory: "500Mi"
-                  cpu: "1000m"
           restartPolicy: Never
           volumes:
             {{- if .Values.aws.enablePersistentVolume }}
