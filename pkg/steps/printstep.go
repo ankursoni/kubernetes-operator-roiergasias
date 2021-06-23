@@ -20,7 +20,7 @@ func (step *Step) NewPrintStep() (printStep *PrintStep) {
 	for k := range step.StepArgumentList {
 		messageList = append(messageList, step.StepArgumentList[k].(string))
 	}
-	messageList = lib.ResolveEnvironmentVariables(messageList)
+	messageList = lib.ResolveEnvironmentVariablesInList(messageList)
 	printStep = &PrintStep{
 		MessageList: messageList,
 		Step:        *step,
@@ -39,7 +39,6 @@ func (printStep *PrintStep) Run() (err error) {
 			return
 		}
 	}
-	err = printStep.Step.Run()
 	logger.Debug("successfully ran print step")
 	return
 }

@@ -11,7 +11,7 @@ task:
       - print:
           - "Hi"
           - "Universe!"
-        set-environment:
+      - environment:
           - greeting: "Warm greetings!"
 
   - sequential:

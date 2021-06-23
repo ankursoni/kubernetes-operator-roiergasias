@@ -101,10 +101,12 @@ task:
     sequential:
       - print:
           - "Hello World!"
-        set-environment:
+      - environment:
           - greeting: "Warm greetings!"
   - node: node2
     sequential:
+      - print:
+          - "Hi Universe!"
       - print:
           - "{{env:welcome}}"
       - execute:
@@ -123,12 +125,12 @@ task:
 
 			Expect(splitNodesList[0].Node).To(Equal("node1"))
 			Expect(splitNodesList[0].TaskList[0]["node"].(string)).To(Equal("node1"))
-			Expect(len(splitNodesList[0].TaskList[0]["sequential"].([]interface{}))).To(Equal(1))
+			Expect(len(splitNodesList[0].TaskList[0]["sequential"].([]interface{}))).To(Equal(2))
 			Expect(len(splitNodesList[0].EnvironmentList)).To(Equal(1))
 
 			Expect(splitNodesList[1].Node).To(Equal("node2"))
 			Expect(splitNodesList[1].TaskList[0]["node"].(string)).To(Equal("node2"))
-			Expect(len(splitNodesList[1].TaskList[0]["sequential"].([]interface{}))).To(Equal(2))
+			Expect(len(splitNodesList[1].TaskList[0]["sequential"].([]interface{}))).To(Equal(3))
 			Expect(len(splitNodesList[1].EnvironmentList)).To(Equal(2))
 
 			rescueStdout := os.Stdout
@@ -142,7 +144,7 @@ task:
 			os.Stdout = rescueStdout
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(out)).To(Equal("Hello World!\nWelcome to the demo workflow!\nWarm greetings!\n"))
+			Expect(string(out)).To(Equal("Hello World!\nHi Universe!\nWelcome to the demo workflow!\nWarm greetings!\n"))
 		})
 	})
 

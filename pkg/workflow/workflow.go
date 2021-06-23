@@ -2,13 +2,12 @@ package workflow
 
 import (
 	"fmt"
-	wflib "github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"io/ioutil"
 	"log"
 	"math"
-	"os"
 	"strconv"
 
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/tasks"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -26,7 +25,7 @@ type Workflows struct {
 
 func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
 	if logger == nil {
-		newLogger, err := wflib.NewZapLogger(false)
+		newLogger, err := lib.NewZapLogger(false)
 		if err != nil {
 			log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
 			return
@@ -104,14 +103,12 @@ func (w *Workflow) Run() (err error) {
 	}
 	if len(w.EnvironmentList) > 0 {
 		logger.Debug("setting up workflow environment", zap.Any("environment list", w.EnvironmentList))
-		for j := range w.EnvironmentList {
-			environmentVariableList := w.EnvironmentList[j]
-			for k := range environmentVariableList {
-				if envErr := os.Setenv(k, environmentVariableList[k]); envErr != nil {
-					err = fmt.Errorf("error setting up workflow environment: %w", err)
-					logger.Error(err.Error(), zap.Error(err))
-					return
-				}
+		for i := range w.EnvironmentList {
+			environmentMap := lib.ResolveEnvironmentVariablesInMap(w.EnvironmentList[i])
+			if environmentErr := lib.SetEnvironmentVariables(environmentMap); environmentErr != nil {
+				err = fmt.Errorf("error setting up workflow environment: %w", err)
+				logger.Error(err.Error(), zap.Error(err))
+				return
 			}
 		}
 		logger.Debug("successfully set up workflow environment")
@@ -185,7 +182,7 @@ func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 			for k := range stepList {
 				step := stepList[k].(map[string]interface{})
 				for l := range step {
-					if l == "set-environment" {
+					if l == "environment" {
 						stepEnvironmentData := step[l].([]interface{})
 						for m := range stepEnvironmentData {
 							stepEnvironmentDataList := stepEnvironmentData[m].(map[string]interface{})

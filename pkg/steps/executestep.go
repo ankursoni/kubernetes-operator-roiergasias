@@ -24,7 +24,7 @@ func (step *Step) NewExecuteStep() (executeStep *ExecuteStep) {
 	for k := range step.StepArgumentList {
 		commandList = append(commandList, step.StepArgumentList[k].(string))
 	}
-	commandList = lib.ResolveEnvironmentVariables(commandList)
+	commandList = lib.ResolveEnvironmentVariablesInList(commandList)
 	executeStep = &ExecuteStep{
 		CommandList: commandList,
 		Step:        *step,
@@ -52,7 +52,6 @@ func (executeStep *ExecuteStep) Run() (err error) {
 			return
 		}
 	}
-	err = executeStep.Step.Run()
 	logger.Debug("successfully ran execute step")
 	return
 }

@@ -60,7 +60,7 @@ spec:
             - print:
                 - "Hi"
                 - "Universe!"
-              set-environment:
+            - environment:
                 - greeting: "Warm greetings!"
 
         - sequential:
@@ -68,7 +68,7 @@ spec:
                 - "{{env:welcome}}"
             - execute:
                 - "echo {{env:greeting}}"
-              set-environment:
+            - environment:
                 - greeting: "Warm greetings too!"
 
         - sequential:

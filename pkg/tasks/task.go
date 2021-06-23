@@ -40,21 +40,15 @@ func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node s
 	}
 	stepType := keys[0]
 	var stepArguments []interface{}
-	otherStepArguments := make(map[string]interface{})
 	for i := 0; i < len(keys); i++ {
 		if i == 0 {
 			stepArguments = stepData[keys[i]].([]interface{})
-		} else {
-			otherStepData := stepData[keys[i]].([]interface{})
-			for otherStepArgumentType := range otherStepData {
-				otherStepArguments[keys[i]] = otherStepData[otherStepArgumentType]
-			}
 		}
 	}
 
 	switch taskType {
 	case "sequential":
-		step := steps.NewStep(stepType, stepArguments, otherStepArguments, logger)
+		step := steps.NewStep(stepType, stepArguments, logger)
 		if step == nil {
 			return nil
 		}
