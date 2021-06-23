@@ -194,7 +194,7 @@ cd kubernetes-operator-roiergasias
 
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version v0.1.0 \
+  --version v0.1.1 \
   roiergasias-operator roiergasias-operator
 
 # change to the cmd/machine-leaning directory
@@ -367,7 +367,7 @@ cd kubernetes-operator-roiergasias
 
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version v0.1.0 \
+  --version v0.1.1 \
   roiergasias-operator roiergasias-operator
 
 # change to the cmd/machine-leaning directory

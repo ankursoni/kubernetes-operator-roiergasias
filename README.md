@@ -121,7 +121,7 @@ Follow this [README](cmd/machine-learning/README.md#process-data-train-ml-model-
 ``` SH
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version v0.1.0 \
+  --version v0.1.1 \
   roiergasias-operator roiergasias-operator
 
 # uninstall the operator
