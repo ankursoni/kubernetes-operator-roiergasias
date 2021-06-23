@@ -12,7 +12,7 @@ task:
       - print:
           - "Hi"
           - "Universe!"
-        set-environment:
+      - environment:
           - greeting: "Warm greetings!"
 
   - node: "node2"
@@ -21,7 +21,7 @@ task:
           - "{{env:welcome}}"
       - execute:
           - "echo {{env:greeting}}"
-        set-environment:
+      - environment:
           - greeting: "Warm greetings too!"
 
   - node: "node2"
