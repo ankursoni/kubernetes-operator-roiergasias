@@ -18,14 +18,14 @@ spec:
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias:aws
-              command: ["./cmd/main", "./cmd/machine-learning/machine-learning.yaml"]
+              command: ["./cmd/main", "./cmd/machine-learning/aws/machine-learning.yaml"]
               env:
                 - name: s3-bucket-uri
                   value: "{{ .Values.aws.s3URI }}"
               volumeMounts:
                 # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
-                  mountPath: /root/cmd/machine-learning
+                  mountPath: /root/cmd/machine-learning/aws
                 {{- if .Values.aws.enablePersistentVolume }}
                 - name: pvc
                   mountPath: /root/cmd/machine-learning-output

@@ -12,10 +12,10 @@ spec:
       containers:
         - name: roiergasias
           image: docker.io/ankursoni/roiergasias:local
-          command: ["./cmd/main", "./cmd/machine-learning/machine-learning.yaml"]
+          command: ["./cmd/main", "./cmd/machine-learning/local/machine-learning.yaml"]
           volumeMounts:
             - name: machine-learning
-              mountPath: /root/cmd/machine-learning
+              mountPath: /root/cmd/machine-learning/local
           resources:
             limits:
               memory: "1000Mi"

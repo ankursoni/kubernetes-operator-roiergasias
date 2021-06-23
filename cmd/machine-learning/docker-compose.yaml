@@ -1,6 +1,0 @@
-services:
-  roiergasias:
-    image: roiergasias:local
-    command: ./cmd/main ./cmd/machine-learning/machine-learning.yaml
-    volumes:
-      - .:/root/cmd/machine-learning
