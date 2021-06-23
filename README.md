@@ -68,6 +68,12 @@ spec:
                 - "{{env:welcome}}"
             - execute:
                 - "echo {{env:greeting}}"
+              set-environment:
+                - greeting: "Warm greetings too!"
+
+        - sequential:
+            - execute:
+                - "echo {{env:greeting}}"
       
   jobTemplate:
     spec:
@@ -85,12 +91,9 @@ spec:
                 - name: yaml
                   mountPath: /root/cmd/hello-world
               resources:
-                requests:
+                limits:
                   memory: "100Mi"
                   cpu: "100m"
-                limits:
-                  memory: "200Mi"
-                  cpu: "200m"
           restartPolicy: Never
 EOF
 

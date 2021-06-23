@@ -1,0 +1,30 @@
+version: 0.1
+
+environment:
+  - welcome: "Welcome to the demo workflow!"
+
+task:
+  - node: "node1"
+    sequential:
+      - print:
+          - "Hello"
+          - "World!"
+      - print:
+          - "Hi"
+          - "Universe!"
+        set-environment:
+          - greeting: "Warm greetings!"
+
+  - node: "node2"
+    sequential:
+      - print:
+          - "{{env:welcome}}"
+      - execute:
+          - "echo {{env:greeting}}"
+        set-environment:
+          - greeting: "Warm greetings too!"
+
+  - node: "node2"
+    sequential:
+      - execute:
+          - "echo {{env:greeting}}"
