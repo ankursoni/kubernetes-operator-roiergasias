@@ -1,0 +1,45 @@
+apiVersion: batch.ankursoni.github.io/v1
+kind: Workflow
+metadata:
+  name: roiergasias-aws
+  namespace: {{ .Values.namespace }}
+spec:
+  workflowYAML:
+    name: machine-learning
+    yaml: |
+{{ .Files.Get .Values.machineLearningAWSYAML | indent 6 }}
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          imagePullSecrets:
+            - name: container-registry-secret
+          containers:
+            - name: roiergasias
+              image: docker.io/ankursoni/roiergasias:aws
+              command: ["/root/roiergasias", "run", "--file=/root/machine-learning/aws/machine-learning.yaml"]
+              env:
+                - name: s3-bucket-uri
+                  value: "{{ .Values.aws.s3URI }}"
+              volumeMounts:
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
+                - name: yaml
+                  mountPath: /root/machine-learning/aws
+                {{- if .Values.aws.enablePersistentVolume }}
+                - name: pvc
+                  mountPath: /root/machine-learning-output
+                {{- else }}
+                - name: ed
+                  mountPath: /root/machine-learning-output
+                {{- end }}
+          restartPolicy: Never
+          volumes:
+            {{- if .Values.aws.enablePersistentVolume }}
+            - name: pvc
+              persistentVolumeClaim:
+                claimName: machine-learning-pvc
+            {{- else }}
+            - name: ed
+              emptyDir: {}
+            {{- end }}

@@ -1,0 +1,35 @@
+version: 0.1
+
+environment:
+  - path: "/root/machine-learning-output"
+  - input-data-file: "weatherAUS.csv"
+  - processed-data-file: "processed-weatherAUS.csv"
+  - ml-model-file: "ml-model.joblib"
+
+task:
+  - sequential:
+      - print:
+          - "Started processing data..."
+      - execute:
+          - "kaggle datasets download jsphyg/weather-dataset-rattle-package -o -f {{env:input-data-file}} -p {{env:path}}"
+          - "unzip -o {{env:path}}/{{env:input-data-file}}.zip -d {{env:path}}"
+          - "rm -f {{env:path}}/{{env:input-data-file}}.zip"
+          - "{{env:path}}/process-data.py {{env:path}}/{{env:input-data-file}} {{env:path}}/{{env:processed-data-file}}"
+      - print:
+          - "Completed processing data."
+
+  - sequential:
+      - print:
+          - "Started training machine learning model..."
+      - execute:
+          - "{{env:path}}/train-model.py {{env:path}}/{{env:processed-data-file}} {{env:path}}/{{env:ml-model-file}}"
+      - print:
+          - "Completed training machine learning model."
+
+  - sequential:
+      - print:
+          - "Started evaluating machine learning model..."
+      - execute:
+          - "{{env:path}}/evaluate-model.py {{env:path}}/{{env:processed-data-file}} {{env:path}}/{{env:ml-model-file}}"
+      - print:
+          - "Completed evaluating machine learning model."

@@ -1,0 +1,6 @@
+services:
+  roiergasias:
+    image: roiergasias:local
+    command: /root/roiergasias run -f /root/machine-learning/local/machine-learning.yaml
+    volumes:
+      - .:/root/machine-learning/local

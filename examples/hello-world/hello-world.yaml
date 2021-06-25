@@ -1,0 +1,21 @@
+version: 0.1
+
+environment:
+  - welcome: "Welcome to the demo workflow!"
+
+task:
+  - sequential:
+      - print:
+          - "Hello"
+          - "World!"
+      - print:
+          - "Hi"
+          - "Universe!"
+      - environment:
+          - greeting: "Warm greetings!"
+
+  - sequential:
+      - print:
+          - "{{env:welcome}}"
+      - execute:
+          - "echo {{env:greeting}}"

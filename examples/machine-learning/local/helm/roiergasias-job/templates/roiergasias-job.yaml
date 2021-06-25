@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: roiergasias-job
+  namespace: {{ .Values.namespace }}
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      imagePullSecrets:
+        - name: container-registry-secret
+      containers:
+        - name: roiergasias
+          image: docker.io/ankursoni/roiergasias:local
+          command: ["/root/roiergasias", "run", "--file=/root/machine-learning/local/machine-learning.yaml"]
+          volumeMounts:
+            - name: machine-learning
+              mountPath: /root/machine-learning/local
+          resources:
+            limits:
+              memory: "1000Mi"
+              cpu: "2000m"
+      restartPolicy: Never
+      volumes:
+        - name: machine-learning
+          hostPath:
+            path: {{ .Values.hostPath }}
+            type: Directory

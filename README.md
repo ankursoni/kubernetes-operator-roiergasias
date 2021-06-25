@@ -16,13 +16,13 @@ git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# set execute permissions to go main binary
-chmod +x cmd/main cmd/main-osx
+# set execute permissions to go binary
+chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # run the hello world workflow
-./cmd/main ./cmd/hello-world/hello-world.yaml
+./cmd/linux/roiergasias ./examples/hello-world/hello-world.yaml
 # or, for mac osx
-./cmd/main-osx ./cmd/hello-world/hello-world.yaml
+./cmd/osx/roiergasias ./exmaples/hello-world/hello-world.yaml
 ```
 ![hello-world](docs/images/hello-world.png)
 
@@ -69,7 +69,7 @@ spec:
             - execute:
                 - "echo {{env:greeting}}"
             - environment:
-                - greeting: "Warm greetings too!"
+                - greeting: "Warm greetings again!"
 
         - sequential:
             - execute:
@@ -85,11 +85,11 @@ spec:
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias-operator:workflow
-              command: ["./cmd/main", "./cmd/hello-world/hello-world.yaml"]
+              command: ["/root/roiergasias", "/root/hello-world/hello-world.yaml"]
               volumeMounts:
                 # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
-                  mountPath: /root/cmd/hello-world
+                  mountPath: /root/hello-world
               resources:
                 limits:
                   memory: "100Mi"
@@ -109,12 +109,12 @@ helm uninstall roiergasias-operator
 
 
 ## Run "Machine learning" workflow locally
-Follow this [README](cmd/machine-learning/local/README.md)
+Follow this [README](examples/machine-learning/local/README.md)
 
 
 ## Run "Machine learning" workflow in AWS
 ![topology](docs/images/aws-topology.png)
-Follow this [README](cmd/machine-learning/aws/README.md)
+Follow this [README](exmaples/machine-learning/aws/README.md)
 
 
 ## Install Roiergasias operator
