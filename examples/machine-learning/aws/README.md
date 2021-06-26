@@ -174,7 +174,7 @@ kubectl apply -f machine-learning-aws-manifest.yaml
 # browse pod created by the job
 kubectl get pods -n roiergasias
 
-# check pod logs for the output
+# check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-aws-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # delete the manifest

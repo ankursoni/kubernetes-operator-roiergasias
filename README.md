@@ -44,7 +44,6 @@ apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
   name: roiergasias-demo
-  namespace: default
 spec:
   workflowYAML:
     name: hello-world
@@ -94,10 +93,16 @@ spec:
 # apply the manifest
 kubectl apply -f examples/hello-world/hello-world-kubernetes.yaml
 
+# browse pod created by the workflow
+kubectl get pods
+
+# check pod logs for the output and wait till it is completed
+kubectl logs roiergasias-demo-<STRING_FROM_PREVIOUS_STEP>
+
 # delete the manifest
 kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
 
-# uninstall the operator
+# uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
 

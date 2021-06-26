@@ -60,6 +60,12 @@ chmod +x ./*.py
 
 # evaluate ml model by reading processed data and model from first and second argument files
 ./evaluate-model.py ./processed-weatherAUS.csv ./ml-model.joblib
+
+# check the contents of local directory for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
+ls -l
+
+# delete the output files (optional)
+rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 ```
 
 
@@ -75,9 +81,18 @@ go mod tidy && go mod download
 chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # run the machine learning workflow
-./cmd/linux/roiergasias ./examples/machine-learning/local/machine-learning.yaml
+./cmd/linux/roiergasias run -f ./examples/machine-learning/local/machine-learning-manual.yaml
 # or, for mac osx
-./cmd/osx/roiergasias ./examples/machine-learning/local/machine-learning.yaml
+./cmd/osx/roiergasias run -f ./examples/machine-learning/local/machine-learning-manual.yaml
+
+# change to the examples/machine-leaning directory
+cd examples/machine-learning/local
+
+# check the contents of local directory for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
+ls -l
+
+# delete the output files (optional)
+rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 ```
 
 
@@ -151,7 +166,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to manually run go workflow via kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to run go workflow via kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -185,7 +200,7 @@ kubectl apply -f machine-learning-job-manifest.yaml
 # browse pod created by the job
 kubectl get pods -n roiergasias
 
-# check pod logs for the output
+# check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # check the contents of local directory for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
@@ -236,10 +251,10 @@ cat machine-learning-workflow-manifest.yaml
 # apply the manifest
 kubectl apply -f machine-learning-workflow-manifest.yaml
 
-# browse pod created by the job
+# browse pod created by the workflow
 kubectl get pods -n roiergasias
 
-# check pod logs for the output
+# check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # check the contents of local directory for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
@@ -249,9 +264,9 @@ ls -l
 kubectl delete -f machine-learning-workflow-manifest.yaml
 rm machine-learning-workflow-manifest.yaml
 
-# uninstall the operator
-helm uninstall roiergasias-operator
-
 # delete the output files (optional)
 rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
+
+# uninstall the operator (optional)
+helm uninstall roiergasias-operator
 ```

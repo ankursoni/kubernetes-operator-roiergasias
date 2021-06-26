@@ -2,7 +2,6 @@ apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
   name: roiergasias-demo
-  namespace: default
 spec:
   workflowYAML:
     name: hello-world
