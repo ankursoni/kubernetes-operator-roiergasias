@@ -12,13 +12,18 @@ import (
 )
 
 type Options struct {
-	Debug bool   `short:"d" long:"debug" description:"enable debug level for logs"`
-	File  string `short:"f" long:"file" description:"workflow yaml file"`
+	Debug bool `short:"d" long:"debug" description:"enable debug level for logs"`
 }
-type RunCommand struct{}
+type RunCommand struct {
+	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
+}
 
-//type ValidateCommand struct{}
-type SplitCommand struct{}
+//type ValidateCommand struct {
+//	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
+//}
+type SplitCommand struct {
+	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
+}
 type VersionCommand struct{}
 
 var options Options
@@ -80,9 +85,9 @@ func main() {
 	}
 }
 
-func (_ *RunCommand) Execute(_ []string) error {
-	logger.Info("running the workflow yaml file", zap.String("path", options.File))
-	w, err := workflow.NewWorkflows(nil, logger).NewWorkflow(options.File)
+func (rc *RunCommand) Execute(_ []string) error {
+	logger.Info("running the workflow yaml file", zap.String("path", rc.File))
+	w, err := workflow.NewWorkflows(nil, logger).NewWorkflow(rc.File)
 	if err != nil {
 		logger.Fatal("error creating new workflow", zap.Error(err))
 		return err
@@ -91,7 +96,7 @@ func (_ *RunCommand) Execute(_ []string) error {
 		logger.Fatal("error running workflow: %w", zap.Error(err))
 		return err
 	}
-	logger.Info("successfully ran the workflow yaml file", zap.String("path", options.File))
+	logger.Info("successfully ran the workflow yaml file", zap.String("path", rc.File))
 	return nil
 }
 
@@ -99,23 +104,23 @@ func (_ *RunCommand) Execute(_ []string) error {
 //	return nil
 //}
 
-func (_ *SplitCommand) Execute(_ []string) error {
-	logger.Info("splitting the workflow yaml file content", zap.String("path", options.File))
-	w, err := workflow.NewWorkflows(nil, logger).NewWorkflow(options.File)
+func (sc *SplitCommand) Execute(_ []string) error {
+	logger.Info("splitting the workflow yaml file content", zap.String("path", sc.File))
+	w, err := workflow.NewWorkflows(nil, logger).NewWorkflow(sc.File)
 	if err != nil {
 		logger.Fatal("error creating new workflow", zap.Error(err))
 		return err
 	}
 	splitWorkflow := w.SplitNodes()
 	if len(splitWorkflow) == 0 {
-		logger.Info("failed split up the workflow yaml file content", zap.String("path", options.File))
+		logger.Info("failed split up the workflow yaml file content", zap.String("path", sc.File))
 	} else {
 		for i, w := range splitWorkflow {
 			fmt.Printf(">>> printing workflow: %d >>>\n", i+1)
 			bytes, _ := yaml.Marshal(w)
 			fmt.Println(string(bytes))
 		}
-		logger.Info("successfully split up the workflow yaml file content", zap.String("path", options.File))
+		logger.Info("successfully split up the workflow yaml file content", zap.String("path", sc.File))
 	}
 	return nil
 }
