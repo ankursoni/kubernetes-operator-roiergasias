@@ -13,6 +13,7 @@ spec:
       backoffLimit: 3
       template:
         spec:
+          restartPolicy: Never
           imagePullSecrets:
             - name: container-registry-secret
           containers:
@@ -29,7 +30,6 @@ spec:
                 limits:
                   memory: "1000Mi"
                   cpu: "2000m"
-          restartPolicy: Never
           volumes:
             - name: machine-learning-output
               hostPath:

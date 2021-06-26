@@ -13,6 +13,7 @@ spec:
       backoffLimit: 3
       template:
         spec:
+          restartPolicy: Never
           imagePullSecrets:
             - name: container-registry-secret
           containers:
@@ -33,7 +34,6 @@ spec:
                 - name: ed
                   mountPath: /root/machine-learning-output
                 {{- end }}
-          restartPolicy: Never
           volumes:
             {{- if .Values.aws.enablePersistentVolume }}
             - name: pvc

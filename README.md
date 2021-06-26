@@ -20,9 +20,9 @@ cd kubernetes-operator-roiergasias
 chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # run the hello world workflow
-./cmd/linux/roiergasias ./examples/hello-world/hello-world.yaml
+./cmd/linux/roiergasias run -f ./examples/hello-world/hello-world.yaml
 # or, for mac osx
-./cmd/osx/roiergasias ./exmaples/hello-world/hello-world.yaml
+./cmd/osx/roiergasias run -f ./examples/hello-world/hello-world.yaml
 ```
 ![hello-world](docs/images/hello-world.png)
 
@@ -34,15 +34,17 @@ chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 ``` SH
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.0 \
+  --version 0.1.1 \
   roiergasias-operator roiergasias-operator
 
-# write the following yaml file
-cat <<EOF>hello-world-manifest.yaml
+# read the following example hello-world-kubernetes.yaml file
+cat examples/hello-world/hello-world-kubernetes.yaml
+
 apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
-  name: roiergasias-kubernetes
+  name: roiergasias-demo
+  namespace: default
 spec:
   workflowYAML:
     name: hello-world
@@ -74,34 +76,26 @@ spec:
         - sequential:
             - execute:
                 - "echo {{env:greeting}}"
-      
+
   jobTemplate:
     spec:
-      backoffLimit: 3
       template:
         spec:
-          imagePullSecrets:
-            - name: container-registry-secret
+          restartPolicy: Never
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias-operator:workflow
-              command: ["/root/roiergasias", "/root/hello-world/hello-world.yaml"]
+              command: ["/root/roiergasias", "run", "--file=/root/hello-world/hello-world.yaml"]
               volumeMounts:
                 # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
                   mountPath: /root/hello-world
-              resources:
-                limits:
-                  memory: "100Mi"
-                  cpu: "100m"
-          restartPolicy: Never
-EOF
 
 # apply the manifest
-kubectl apply -f hello-world-manifest.yaml
+kubectl apply -f examples/hello-world/hello-world-kubernetes.yaml
 
 # delete the manifest
-kubectl delete -f hello-world-manifest.yaml
+kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
 
 # uninstall the operator
 helm uninstall roiergasias-operator
