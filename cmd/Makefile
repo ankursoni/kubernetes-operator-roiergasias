@@ -1,16 +1,17 @@
-all: build docker-workflow
+all: build docker-workflow-build
 
 build: build-linux build-osx
 build-linux:
 	GOOS=linux GOARCH=amd64 go build -o linux/roiergasias .
 	chmod +x linux/roiergasias
-
 build-osx:
 	GOOS=darwin GOARCH=amd64 go build -o osx/roiergasias .
 	chmod +x osx/roiergasias
 
-docker-workflow: build-linux
+docker-workflow-build: build-linux
 	docker build -t docker.io/ankursoni/roiergasias-operator:workflow .
+docker-workflow-push: docker-workflow-build
+	docker push docker.io/ankursoni/roiergasias-operator:workflow
 
 docker-examples: build-linux docker-example-local docker-example-aws
 docker-example-local:
