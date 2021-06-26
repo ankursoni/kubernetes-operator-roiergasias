@@ -133,8 +133,8 @@ helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias
   --version v0.1.1 \
   roiergasias-operator roiergasias-operator
 
-# change to the examples/machine-leaning/aws directory
-cd examples/machine-leaning/aws
+# change to the examples/machine-learning/aws directory
+cd examples/machine-learning/aws
 
 # upload the workflow yaml and python script files
 # assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
@@ -159,7 +159,7 @@ nano ./helm/roiergasias-aws/values-secret.yaml
 #   aws --region <REGION> efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep <PREFIX>-<ENVIRONMENT>-efs01, for e.g.,
 # aws --region ap-southeast-2 efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep roiergasias-demo-efs01
 
-# output helm chart template for roiergasias aws auto
+# output helm chart template for roiergasias aws
 helm template \
   -n roiergasias \
   -f ./helm/roiergasias-aws/values-secret.yaml \
@@ -181,7 +181,7 @@ kubectl logs roiergasias-aws-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 kubectl delete -f machine-learning-aws-manifest.yaml
 rm machine-learning-aws-manifest.yaml
 
-# uninstall the operator
+# uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
 
@@ -202,5 +202,6 @@ aws s3 rm s3://roiergasias-demo-s3b01 --recursive
 terraform destroy -var-file=values-secret.tfvars
 # sometimes it fails the first time. So, after a delay of 5-10 mins you can repeat the above command as many times until it succeeds
 
+# delete terraform related files
 rm -rf .terraform* terraform*
 ```
