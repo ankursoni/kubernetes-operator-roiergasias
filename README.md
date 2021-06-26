@@ -120,7 +120,7 @@ Follow this [README](examples/machine-learning/local/README.md)
 
 ## Run "Machine learning" workflow in AWS
 ![topology](docs/images/aws-topology.png)
-Follow this [README](exmaples/machine-learning/aws/README.md)
+Follow this [README](examples/machine-learning/aws/README.md)
 
 
 ## Install Roiergasias operator
