@@ -42,9 +42,9 @@ var _ ITaskWorkflow = &SequentialTask{}
 func (sequentialTask *SequentialTask) Run() (err error) {
 	logger := sequentialTask.Logger
 	logger.Debug("started running sequential task", zap.Any("steps", sequentialTask.Steps))
-	for k := range sequentialTask.Steps {
-		if taskErr := sequentialTask.Steps[k].Run(); taskErr != nil {
-			err = fmt.Errorf("error running sequential task: %w", taskErr)
+	for _, step := range sequentialTask.Steps {
+		if stepErr := step.Run(); stepErr != nil {
+			err = fmt.Errorf("error running sequential task: %w", stepErr)
 			logger.Error(err.Error(), zap.Error(err))
 			return
 		}

@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"go.uber.org/zap"
 )
 
@@ -21,11 +22,11 @@ func NewStep(stepType string, stepArguments []interface{}, logger *zap.Logger) (
 	newStep.StepArgumentList = stepArguments
 
 	switch stepType {
-	case "environment":
+	case string(lib.EnvironmentStepType):
 		step = newStep.NewEnvironmentStep()
-	case "print":
+	case string(lib.PrintStepType):
 		step = newStep.NewPrintStep()
-	case "execute":
+	case string(lib.ExecuteStepType):
 		step = newStep.NewExecuteStep()
 	default:
 		return nil

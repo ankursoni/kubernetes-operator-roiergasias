@@ -17,10 +17,9 @@ type Options struct {
 type RunCommand struct {
 	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
 }
-
-//type ValidateCommand struct {
-//	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
-//}
+type ValidateCommand struct {
+	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
+}
 type SplitCommand struct {
 	File string `required:"yes" short:"f" long:"file" description:"workflow yaml file"`
 }
@@ -29,8 +28,7 @@ type VersionCommand struct{}
 var options Options
 var parser = flags.NewParser(&options, flags.Default)
 var runCommand RunCommand
-
-//var validateCommand ValidateCommand
+var validateCommand ValidateCommand
 var splitCommand SplitCommand
 var versionCommand VersionCommand
 
@@ -44,12 +42,12 @@ func init() {
 		log.Fatalln(fmt.Errorf("error adding command line commands: %w", err))
 		return
 	}
-	//_, err = parser.AddCommand("validate", "validate a workflow yaml file",
-	//	"validate a workflow yaml file content", &validateCommand)
-	//if err != nil {
-	//	log.Fatalln(fmt.Errorf("error adding command line commands: %w", err))
-	//	return
-	//}
+	_, err = parser.AddCommand("validate", "validate a workflow yaml file",
+		"validate a workflow yaml file content", &validateCommand)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("error adding command line commands: %w", err))
+		return
+	}
 	_, err = parser.AddCommand("split", "split a workflow yaml file",
 		"split a workflow yaml file content and output new workflow yaml(s) if nodes are assigned to each task",
 		&splitCommand)
@@ -100,9 +98,20 @@ func (rc *RunCommand) Execute(_ []string) error {
 	return nil
 }
 
-//func (_ *ValidateCommand) Execute(_ []string) error {
-//	return nil
-//}
+func (vc *ValidateCommand) Execute(_ []string) error {
+	logger.Info("validating the workflow yaml file", zap.String("path", vc.File))
+	w, err := workflow.NewWorkflows(nil, logger).NewWorkflow(vc.File)
+	if err != nil {
+		logger.Fatal("error creating new workflow", zap.Error(err))
+		return err
+	}
+	if err = w.Validate(); err != nil {
+		logger.Fatal("error validating workflow: %w", zap.Error(err))
+		return err
+	}
+	logger.Info("successfully validated the workflow yaml file", zap.String("path", vc.File))
+	return nil
+}
 
 func (sc *SplitCommand) Execute(_ []string) error {
 	logger.Info("splitting the workflow yaml file content", zap.String("path", sc.File))

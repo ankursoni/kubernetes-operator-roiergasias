@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"reflect"
 	"strconv"
 
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
@@ -43,7 +44,7 @@ func NewWorkflows(t tasks.ITasks, logger *zap.Logger) (workflows IWorkflows) {
 	return
 }
 
-func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) {
+func (w *Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) {
 	logger := w.Logger
 	logger.Debug("reading yaml file", zap.String("path", filePath))
 	bytes, readErr := ioutil.ReadFile(filePath)
@@ -65,7 +66,7 @@ func (w Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error) 
 	return
 }
 
-func (w Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
+func (w *Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
 	logger := w.Logger
 	logger.Debug("parsing yaml text to workflow", zap.String("path", text))
 	parseErr := yaml.Unmarshal([]byte(text), &workflow)
@@ -91,14 +92,8 @@ type Workflow struct {
 
 func (w *Workflow) Run() (err error) {
 	logger := w.Logger
-	if version, verErr := strconv.ParseFloat(w.Version, 32); verErr != nil || math.Round(version*10)/10 != 0.1 {
-		err = fmt.Errorf("error as invalid version or unsupported version (not 0.1)")
-		logger.Error(err.Error(), zap.Error(err))
-		return
-	}
-	if len(w.TaskList) == 0 {
-		err = fmt.Errorf("error as no task list found")
-		logger.Error(err.Error(), zap.Error(err))
+	if validationErr := w.Validate(); validationErr != nil {
+		err = validationErr
 		return
 	}
 	if len(w.EnvironmentList) > 0 {
@@ -114,14 +109,13 @@ func (w *Workflow) Run() (err error) {
 		logger.Debug("successfully set up workflow environment")
 	}
 	logger.Debug("setting up workflow tasks, steps and then run", zap.Any("task list", w.TaskList))
-	for i := range w.TaskList {
-		taskData := w.TaskList[i]
+	for _, taskData := range w.TaskList {
 		var node string
 		var taskType string
 		var stepList []interface{}
 		for j := range taskData {
 			switch j {
-			case "node":
+			case string(lib.NodeAttribute):
 				node = taskData[j].(string)
 			default:
 				taskType = j
@@ -147,20 +141,78 @@ func (w *Workflow) Run() (err error) {
 	return
 }
 
+func (w *Workflow) Validate() (err error) {
+	logger := w.Logger
+	logger.Debug("validating workflow", zap.Any("workflow", w))
+	if version, verErr := strconv.ParseFloat(w.Version, 32); verErr != nil || math.Round(version*10)/10 != 0.1 {
+		err = fmt.Errorf("validation error: invalid version or unsupported version (not 0.1)")
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
+	if len(w.TaskList) == 0 {
+		err = fmt.Errorf("validation error: no task list found")
+		logger.Error(err.Error(), zap.Error(err))
+		return
+	}
+	for i, taskData := range w.TaskList {
+		var taskType string
+		var stepList []interface{}
+		for j := range taskData {
+			switch j {
+			case string(lib.NodeAttribute):
+			case string(lib.SequentialTaskType):
+				taskType = j
+				if reflect.TypeOf(taskData[j]) != reflect.TypeOf([]interface{}{}) {
+					err = fmt.Errorf("validation error: invalid step list in task number %s with task type %s",
+						j, taskType)
+					logger.Error(err.Error(), zap.Error(err))
+					return
+				}
+				stepList = taskData[j].([]interface{})
+			default:
+				err = fmt.Errorf("validation error: invalid task type %s", j)
+				logger.Error(err.Error(), zap.Error(err))
+				return
+			}
+		}
+		if len(stepList) == 0 {
+			err = fmt.Errorf("validation error: no step list found for task number %d with task type %s", i+1, taskType)
+			logger.Error(err.Error(), zap.Error(err))
+			return
+		}
+		for k := range stepList {
+			step := stepList[k].(map[string]interface{})
+			for l := range step {
+				switch l {
+				case string(lib.EnvironmentStepType):
+				case string(lib.PrintStepType):
+				case string(lib.ExecuteStepType):
+				default:
+					err = fmt.Errorf("validation error: invalid step type %s in task number %d with task type %s",
+						l, i+1, taskType)
+					logger.Error(err.Error(), zap.Error(err))
+					return
+				}
+			}
+		}
+	}
+	logger.Debug("successfully validated workflow")
+	return
+}
+
 func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 	logger := w.Logger
-	if len(w.TaskList) == 0 {
+	if validationErr := w.Validate(); validationErr != nil {
 		return
 	}
 	logger.Debug("splitting up nodes", zap.Any("task list", w.TaskList))
 	additionalEnvironmentList := []map[string]string{}
-	for i := range w.TaskList {
-		taskData := w.TaskList[i]
+	for i, taskData := range w.TaskList {
 		var node string
 		var stepList []interface{}
 		for j := range taskData {
 			switch j {
-			case "node":
+			case string(lib.NodeAttribute):
 				node = taskData[j].(string)
 			default:
 				stepList = taskData[j].([]interface{})
@@ -182,7 +234,7 @@ func (w *Workflow) SplitNodes() (newWorkflowList []Workflow) {
 			for k := range stepList {
 				step := stepList[k].(map[string]interface{})
 				for l := range step {
-					if l == "environment" {
+					if l == string(lib.EnvironmentStepType) {
 						stepEnvironmentData := step[l].([]interface{})
 						for m := range stepEnvironmentData {
 							stepEnvironmentDataList := stepEnvironmentData[m].(map[string]interface{})

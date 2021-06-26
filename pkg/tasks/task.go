@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/lib"
 	"github.com/ankursoni/kubernetes-operator-roiergasias/pkg/steps"
 	"go.uber.org/zap"
 )
@@ -47,7 +48,7 @@ func (t *Tasks) NewTask(taskType string, stepData map[string]interface{}, node s
 	}
 
 	switch taskType {
-	case "sequential":
+	case string(lib.SequentialTaskType):
 		step := steps.NewStep(stepType, stepArguments, logger)
 		if step == nil {
 			return nil

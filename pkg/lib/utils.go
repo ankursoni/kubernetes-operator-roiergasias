@@ -9,6 +9,30 @@ import (
 	"go.uber.org/zap"
 )
 
+type TaskType string
+
+const (
+	SequentialTaskType TaskType = "sequential"
+)
+
+type StepType string
+
+const (
+	EnvironmentStepType StepType = "environment"
+	PrintStepType       StepType = "print"
+	ExecuteStepType     StepType = "execute"
+)
+
+type Attribute string
+
+const (
+	NodeAttribute Attribute = "node"
+)
+
+var (
+	regex = "{{env:[a-zA-Z0-9-_]+}}"
+)
+
 func SetEnvironmentVariables(inputList map[string]string) (err error) {
 	for k := range inputList {
 		if envErr := os.Setenv(k, inputList[k]); envErr != nil {
@@ -21,7 +45,7 @@ func SetEnvironmentVariables(inputList map[string]string) (err error) {
 
 func ResolveEnvironmentVariablesInList(inputList []string) (outputList []string) {
 	outputList = inputList
-	regExp, _ := regexp.Compile("{{env:[a-zA-Z0-9-_]+}}")
+	regExp, _ := regexp.Compile(regex)
 	for k := range inputList {
 		matches := regExp.FindAllString(inputList[k], -1)
 		for m := range matches {
@@ -34,7 +58,7 @@ func ResolveEnvironmentVariablesInList(inputList []string) (outputList []string)
 
 func ResolveEnvironmentVariablesInMap(inputMap map[string]string) (outputMap map[string]string) {
 	outputMap = inputMap
-	regExp, _ := regexp.Compile("{{env:[a-zA-Z0-9-_]+}}")
+	regExp, _ := regexp.Compile(regex)
 	for k := range outputMap {
 		matches := regExp.FindAllString(outputMap[k], -1)
 		for m := range matches {

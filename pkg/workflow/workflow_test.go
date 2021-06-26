@@ -148,7 +148,38 @@ task:
 		})
 	})
 
-	Context("given invalid tasks and steps", func() {
+	Context("given no task", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 0.1
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:`
+		})
+
+		It("create new workflow, call split nodes and run", func() {
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			err = w.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: no task list found"))
+		})
+	})
+
+	Context("given invalid task type", func() {
 		var (
 			logger *zap.Logger
 			text   string
@@ -167,7 +198,7 @@ environment:
   - welcome: "Welcome to the demo workflow!"
 task:
   - sequential:
-      - invalid:
+      - print:
           - "Hello World!"
   - invalid:
       - print:
@@ -179,11 +210,83 @@ task:
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
-			splitNodesList := w.SplitNodes()
-			Expect(splitNodesList).To(BeEmpty())
-
-			err = w.Run()
+			err = w.Validate()
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: invalid task type"))
+		})
+	})
+
+	Context("given invalid step type", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 0.1
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:
+  - sequential:
+      - print:
+          - "Hello World!"
+  - sequential:
+      - invalid:
+          - "{{env:welcome}}"`
+		})
+
+		It("create new workflow, call split nodes and run", func() {
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			err = w.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: invalid step type"))
+		})
+	})
+
+	Context("given invalid step list in a valid task", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 0.1
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:
+  - sequential:
+      print:
+        - "Hello World!"
+  - sequential:
+      - print:
+          - "{{env:welcome}}"`
+		})
+
+		It("create new workflow, call split nodes and run", func() {
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			err = w.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: invalid step list"))
 		})
 	})
 })
