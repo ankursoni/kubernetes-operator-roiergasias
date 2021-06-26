@@ -197,8 +197,11 @@ cat machine-learning-job-manifest.yaml
 # apply the manifest
 kubectl apply -f machine-learning-job-manifest.yaml
 
+# browse job created by the manifest
+kubectl get job -n roiergasias
+
 # browse pod created by the job
-kubectl get pods -n roiergasias
+kubectl get pod -n roiergasias
 
 # check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-job-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
@@ -251,8 +254,14 @@ cat machine-learning-workflow-manifest.yaml
 # apply the manifest
 kubectl apply -f machine-learning-workflow-manifest.yaml
 
-# browse pod created by the workflow
-kubectl get pods -n roiergasias
+# browse workflow created by the manifest
+kubectl get workflow -n roiergasias
+
+# browse job created by the workflow
+kubectl get job -n roiergasias
+
+# browse pod created by the job
+kubectl get pod -n roiergasias
 
 # check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-workflow-<STRING_FROM_PREVIOUS_STEP> -n roiergasias

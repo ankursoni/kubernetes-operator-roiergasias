@@ -44,9 +44,15 @@ sed -i 's|<ENVIRONMENT>|PLACEHOLDER|g' ./values-secret.tfvars
 # run this to know more: "aws ec2 describe-regions -o table"
 sed -i 's|<REGION>|PLACEHOLDER|g' ./values-secret.tfvars
 
-# substitute the value for <NODE_COUNT> by replacing PLACEHOLDER in the command
+# substitute the value for <NODE1_COUNT> by replacing PLACEHOLDER in the command
+# this is the node count for primary node i.e. "node1" of size - t2.medium
 # PLACEHOLDER e.g. 1
-sed -i 's|<NODE_COUNT>|PLACEHOLDER|g' ./values-secret.tfvars
+sed -i 's|<NODE1_COUNT>|PLACEHOLDER|g' ./values-secret.tfvars
+
+# substitute the value for <NODE2_COUNT> by replacing PLACEHOLDER in the command
+# this is the node count for secondary node i.e. "node2" of size - t2.large
+# PLACEHOLDER e.g. 1
+sed -i 's|<NODE2_COUNT>|PLACEHOLDER|g' ./values-secret.tfvars
 
 # verify the ./values-secret.tfvars file by displaying its content
 cat ./values-secret.tfvars
@@ -55,7 +61,8 @@ cat ./values-secret.tfvars
 prefix="roiergasias"
 environment="demo"
 region="ap-southeast-2"
-node_count=1
+node1_count=1
+node2_count=1
 
 # if there is a correction needed then use text editor 'nano' to update the file and then press ctrl+x after you are done editing
 nano ./values-secret.tfvars
@@ -171,11 +178,29 @@ cat machine-learning-aws-manifest.yaml
 # apply the manifest
 kubectl apply -f machine-learning-aws-manifest.yaml
 
-# browse pod created by the job
+# browse workflow created by the manifest
+kubectl get workflow -n roiergasias
+
+# browse jobs created by the workflow
+kubectl get jobs -n roiergasias
+
+# the following jobs should be created one after another:
+# roiergasias-aws-1-node1
+# roiergasias-aws-2-node2
+# roiergasias-aws-3-node2
+# this is because of the split workflow (count = 3) spread into 2 nodes (node1 and node2)
+
+# browse pods created by the above jobs
 kubectl get pods -n roiergasias
 
-# check pod logs for the output and wait till it is completed
-kubectl logs roiergasias-aws-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+# check pod logs for the output and wait till the last one is completed
+kubectl logs roiergasias-aws-1-node1-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+kubectl logs roiergasias-aws-2-node2-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+kubectl logs roiergasias-aws-3-node2-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
+
+# check the contents of s3 bucket for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
+# assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
+aws s3 ls s3://roiergasias-demo-s3b01
 
 # delete the manifest
 kubectl delete -f machine-learning-aws-manifest.yaml

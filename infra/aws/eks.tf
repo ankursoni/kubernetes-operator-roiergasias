@@ -49,8 +49,8 @@ resource "aws_eks_node_group" "eksng01" {
   subnet_ids      = [module.vpc.private_subnets[0]]
 
   scaling_config {
-    desired_size = var.node_count
-    max_size     = var.node_count + 1
+    desired_size = var.node1_count
+    max_size     = var.node1_count + 1
     min_size     = 1
   }
 
@@ -85,8 +85,8 @@ resource "aws_eks_node_group" "eksng02" {
   subnet_ids      = [module.vpc.private_subnets[1]]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 1
+    desired_size = var.node2_count
+    max_size     = var.node2_count + 1
     min_size     = 1
   }
 

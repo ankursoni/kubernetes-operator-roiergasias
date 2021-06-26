@@ -7,6 +7,9 @@ variable "environment" {
 variable "region" {
   default = ""
 }
-variable "node_count" {
+variable "node1_count" {
+  default = 1
+}
+variable "node2_count" {
   default = 1
 }

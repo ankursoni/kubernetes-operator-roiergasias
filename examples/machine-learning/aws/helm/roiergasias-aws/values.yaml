@@ -4,4 +4,4 @@ machineLearningAWSYAML: "machine-learning-aws.yaml"
 aws:
   s3URI: "s3://roiergasias-demo-s3b01/"
   enablePersistentVolume: 0
-  efsId: "fs-698bb651"
+  efsId: "fs-3da59a05"
