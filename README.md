@@ -39,7 +39,7 @@ helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias
 
 # read the following example hello-world-kubernetes.yaml file
 cat examples/hello-world/hello-world-kubernetes.yaml
-
+---
 apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
@@ -89,12 +89,19 @@ spec:
                 # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
                   mountPath: /root/hello-world
+---
 
 # apply the manifest
 kubectl apply -f examples/hello-world/hello-world-kubernetes.yaml
 
-# browse pod created by the workflow
-kubectl get pods
+# browse workflow created by the manifest
+kubectl get workflow
+
+# browse job created by the workflow
+kubectl get job
+
+# browse pod created by the job
+kubectl get pod
 
 # check pod logs for the output and wait till it is completed
 kubectl logs roiergasias-demo-<STRING_FROM_PREVIOUS_STEP>
