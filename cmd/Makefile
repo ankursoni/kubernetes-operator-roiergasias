@@ -1,3 +1,5 @@
+REPO ?= docker.io/ankursoni
+
 all: build docker-workflow-build
 
 build: build-linux build-osx
@@ -10,16 +12,16 @@ build-osx:
 
 docker-workflow: docker-workflow-build docker-workflow-push
 docker-workflow-build: build
-	docker build -t docker.io/ankursoni/roiergasias-operator:workflow .
+	docker build -t ${REPO}/roiergasias-operator:workflow .
 docker-workflow-push: docker-workflow-build
-	docker push docker.io/ankursoni/roiergasias-operator:workflow
+	docker push ${REPO}/roiergasias-operator:workflow
 
 docker-examples: docker-example-local docker-example-aws
 docker-example-local: build
 	docker build -t roiergasias:local -f Dockerfile-local .
-	docker tag roiergasias:local docker.io/ankursoni/roiergasias:local
-	docker push docker.io/ankursoni/roiergasias:local
+	docker tag roiergasias:local ${REPO}/roiergasias:local
+	docker push ${REPO}/roiergasias:local
 docker-example-aws: build
 	docker build -t roiergasias:aws -f Dockerfile-aws .
-	docker tag roiergasias:aws docker.io/ankursoni/roiergasias:aws
-	docker push docker.io/ankursoni/roiergasias:aws
+	docker tag roiergasias:aws ${REPO}/roiergasias:aws
+	docker push ${REPO}/roiergasias:aws
