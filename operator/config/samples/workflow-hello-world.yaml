@@ -1,7 +1,7 @@
 apiVersion: batch.ankursoni.github.io/v1
 kind: Workflow
 metadata:
-  name: roiergasias-kubernetes
+  name: roiergasias-demo
 spec:
   workflowYAML:
     name: hello-world
@@ -13,40 +13,37 @@ spec:
 
       task:
         - sequential:
-          - print:
-            - "Hello"
-            - "World!"
-          - print:
-            - "Hi"
-            - "Universe!"
-            set-environment:
-              - greeting: "Warm greetings!"
+            - print:
+                - "Hello"
+                - "World!"
+            - print:
+                - "Hi"
+                - "Universe!"
+            - environment:
+                - greeting: "Warm greetings!"
 
         - sequential:
-          - print:
-            - "{{env:welcome}}"
-          - execute:
-            - "echo {{env:greeting}}"
+            - print:
+                - "{{env:welcome}}"
+            - execute:
+                - "echo {{env:greeting}}"
+            - environment:
+                - greeting: "Warm greetings again!"
+
+        - sequential:
+            - execute:
+                - "echo {{env:greeting}}"
 
   jobTemplate:
     spec:
-      backoffLimit: 3
       template:
         spec:
-          imagePullSecrets:
-            - name: container-registry-secret
+          restartPolicy: Never
           containers:
             - name: roiergasias
               image: docker.io/ankursoni/roiergasias-operator:workflow
-              command: ["./cmd/main", "./cmd/hello-world/hello-world.yaml"]
+              command: ["/root/roiergasias", "run", "--file=/root/hello-world/hello-world.yaml"]
               volumeMounts:
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
                 - name: yaml
-                  mountPath: /root/cmd/hello-world
-              resources:
-                requests:
-                  memory: "100Mi"
-                  cpu: "100m"
-                limits:
-                  memory: "200Mi"
-                  cpu: "200m"
-          restartPolicy: Never
+                  mountPath: /root/hello-world
