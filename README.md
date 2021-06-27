@@ -8,6 +8,37 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
 &#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in June 2021.  
 > MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
+
+## Repository structure
+```
+┬ 📌 ----------------------> you are here
+│
+├── cmd    ----------------> contains go main starting point for roiergasias workflow cli
+│   ├── linux   -----------> contains linux amd64 binary for roiergasias workflow cli
+│   └── osx   -------------> contains mac-osx amd64 binary for roiergasias workflow cli
+├── docs   ----------------> contains documentation / images
+├── examples  
+│   ├── hello-world   -----> contains both single node and multi node split workflow example
+│   ├── machine-learning
+│   │   ├── aws   ---------> contains multi node split workflow in 2 node groups example
+│   │   └── local   -------> contains single node workflow example
+├── infra   ---------------> contains terraform scripts for infrastructure as code
+│   └── aws
+├── operator   ------------> contains kubernetes operator code for roiergasias workflow
+│   ├── api
+│   ├── config
+│   ├── controllers
+│   ├── hack
+│   └── helm   ------------> contains kubernetes operator helm chart repository
+└── pkg   -----------------> contains go packages for roiergasias workflow engine
+    ├── lib
+    ├── mocks
+    ├── steps
+    ├── tasks
+    └── workflow
+```
+
+
 ## Run "Hello world" workflow locally
 ``` SH
 # clone to a local git directory, if not already done so
