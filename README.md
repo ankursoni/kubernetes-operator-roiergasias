@@ -109,6 +109,9 @@ kubectl logs roiergasias-demo-<STRING_FROM_PREVIOUS_STEP>
 # delete the manifest
 kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
 
+# delete the roiergasias namespace (optional)
+kubectl delete ns roiergasias
+
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```

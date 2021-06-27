@@ -83,6 +83,8 @@ aws eks update-kubeconfig --region <REGION> --name <PREFIX>-<ENVIRONMENT>-eks01
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
+# or, if coming from previous steps then
+cd ../..
 
 # copy kaggle api credentials from ~/.kaggle
 cp ~/.kaggle/kaggle.json cmd/
@@ -145,6 +147,7 @@ cd examples/machine-learning/aws
 
 # upload the workflow yaml and python script files
 # assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
+# otherwise, change to correct <PREFIX> and <ENVIRONMENT> values in "s3://<PREFIX>-<ENVIRONMENT>-s3b01/"
 aws s3 cp process-data.py s3://roiergasias-demo-s3b01/
 aws s3 cp train-model.py s3://roiergasias-demo-s3b01/
 aws s3 cp evaluate-model.py s3://roiergasias-demo-s3b01/
@@ -162,7 +165,7 @@ nano ./helm/roiergasias-aws/values-secret.yaml
 #          "s3://roiergasias-demo-s3b01/"
 # update "enablePersistentVolume" to be either 0 (default) or 1 to turn OFF or ON the persistent volume from elastic file system (EFS)
 #   it gives persistence to the data written by steps in the workflow. Regardless of value, each sequential task syncs up to the S3 at the end of each stage.
-# update "efsId" by running the command and copying the second value from output:
+# if "enablePersistentVolume" is set to 1 then, update "efsId" by running the command and copying the second value from output:
 #   aws --region <REGION> efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep <PREFIX>-<ENVIRONMENT>-efs01, for e.g.,
 # aws --region ap-southeast-2 efs describe-file-systems --query 'FileSystems[*].[Name, FileSystemId]' --output text | grep roiergasias-demo-efs01
 
@@ -190,7 +193,7 @@ kubectl get jobs -n roiergasias
 # roiergasias-aws-3-node2
 # this is because of the split workflow (count = 3) spread into 2 nodes (node1 and node2)
 
-# browse pods created by the above jobs
+# after all jobs are completed, browse pods created by the above jobs
 kubectl get pods -n roiergasias
 
 # check pod logs for the output and wait till the last one is completed
@@ -200,11 +203,15 @@ kubectl logs roiergasias-aws-3-node2-<STRING_FROM_PREVIOUS_STEP> -n roiergasias
 
 # check the contents of s3 bucket for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
 # assumes 'roiergasias' as <PREFIX> and 'demo' as <ENVIRONMENT> values
+# otherwise, change to correct <PREFIX> and <ENVIRONMENT> values in "s3://<PREFIX>-<ENVIRONMENT>-s3b01/"
 aws s3 ls s3://roiergasias-demo-s3b01
 
 # delete the manifest
 kubectl delete -f machine-learning-aws-manifest.yaml
 rm machine-learning-aws-manifest.yaml
+
+# delete the roiergasias namespace (optional)
+kubectl delete ns roiergasias
 
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
@@ -215,6 +222,8 @@ helm uninstall roiergasias-operator
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
+# or, if coming from previous steps then
+cd ../../..
 
 # change to the infra/aws directory
 cd infra/aws
@@ -229,4 +238,7 @@ terraform destroy -var-file=values-secret.tfvars
 
 # delete terraform related files
 rm -rf .terraform* terraform*
+
+# return to the local git directory
+cd ../..
 ```
