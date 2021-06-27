@@ -100,12 +100,14 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
+# or, if coming from previous steps then
+cd ../../..
 
 # copy kaggle api credentials from ~/.kaggle
 cp ~/.kaggle/kaggle.json cmd/
 
 # set execute permissions to go binary
-chmod +x cmd/linux/roiergasias
+chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # build docker image
 docker build -t roiergasias:local -f cmd/Dockerfile-local cmd
@@ -120,7 +122,7 @@ cd kubernetes-operator-roiergasias
 # change to the examples/machine-leaning/local directory
 cd examples/machine-learning/local
 
-# run docker compose
+# run docker compose and wait till it is completed
 docker-compose up
 
 # check the contents of local directory for output files like weatherAUS.csv, processed-weatherAUS.csv and ml-model.joblib
@@ -170,6 +172,8 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
+# or, if coming from previous steps then
+cd ../../..
 
 # change to the examples/machine-leaning/local directory
 cd examples/machine-learning/local
@@ -222,6 +226,8 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
+# or, if coming from previous steps then
+cd ../../..
 
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
@@ -278,4 +284,7 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
+
+# return to the local git directory
+cd ../../..
 ```
