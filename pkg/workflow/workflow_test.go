@@ -45,31 +45,32 @@ task:
 			tw = mocks.NewMockITaskWorkflow(mockController)
 		})
 
-		It("create new workflow and run with task mock", func() {
+		It("test new workflow and run with task mock", func() {
+			By("by creating new workflow")
 			t.EXPECT().NewTask(gomock.Eq("sequential"), gomock.Any(), gomock.Eq("")).Return(tw)
 			w, err := workflow.NewWorkflows(t, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by running workflow")
 			tw.EXPECT().Run()
 			err = w.Run()
 			Expect(err).ToNot(HaveOccurred())
 		})
-		It("create new workflow and run", func() {
+		It("test new workflow and run", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by running workflow")
 			rescueStdout := os.Stdout
 			rf, wf, _ := os.Pipe()
 			os.Stdout = wf
-
 			err = w.Run()
-
-			wf.Close()
+			_ = wf.Close()
 			out, _ := ioutil.ReadAll(rf)
 			os.Stdout = rescueStdout
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(out)).To(Equal("Hello World!\n"))
 		})
@@ -113,36 +114,33 @@ task:
           - "echo {{env:greeting}}"`
 		})
 
-		It("create new workflow, call split nodes and run", func() {
+		It("test new workflow, call split nodes and run", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by calling split nodes")
 			splitNodesList := w.SplitNodes()
-
 			Expect(splitNodesList).ToNot(BeEmpty())
 			Expect(len(splitNodesList)).To(Equal(2))
-
 			Expect(splitNodesList[0].Node).To(Equal("node1"))
 			Expect(splitNodesList[0].TaskList[0]["node"].(string)).To(Equal("node1"))
 			Expect(len(splitNodesList[0].TaskList[0]["sequential"].([]interface{}))).To(Equal(2))
 			Expect(len(splitNodesList[0].EnvironmentList)).To(Equal(1))
-
 			Expect(splitNodesList[1].Node).To(Equal("node2"))
 			Expect(splitNodesList[1].TaskList[0]["node"].(string)).To(Equal("node2"))
 			Expect(len(splitNodesList[1].TaskList[0]["sequential"].([]interface{}))).To(Equal(3))
 			Expect(len(splitNodesList[1].EnvironmentList)).To(Equal(2))
 
+			By("by running workflow")
 			rescueStdout := os.Stdout
 			rf, wf, _ := os.Pipe()
 			os.Stdout = wf
-
 			err = w.Run()
-
-			wf.Close()
+			_ = wf.Close()
 			out, _ := ioutil.ReadAll(rf)
 			os.Stdout = rescueStdout
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(out)).To(Equal("Hello World!\nHi Universe!\nWelcome to the demo workflow!\nWarm greetings!\n"))
 		})
@@ -168,14 +166,93 @@ environment:
 task:`
 		})
 
-		It("create new workflow, call split nodes and run", func() {
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by calling validate")
 			err = w.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("validation error: no task list found"))
+		})
+	})
+
+	Context("given invalid version", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 100.0
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:
+  - sequential:
+      - print:
+          - "Hello World!"
+  - sequential:
+      - print:
+          - "{{env:welcome}}"`
+		})
+
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			By("by calling validate")
+			err = w.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: invalid version or unsupported version"))
+		})
+	})
+
+	Context("given no step list in a valid task", func() {
+		var (
+			logger *zap.Logger
+			text   string
+		)
+
+		BeforeEach(func() {
+			var err error
+			logger, err = lib.NewZapLogger(true)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("error creating new zap logger: %w", err))
+				return
+			}
+			text = `
+version: 0.1
+environment:
+  - welcome: "Welcome to the demo workflow!"
+task:
+  - sequential:
+      -
+  - sequential:
+      - print:
+          - "{{env:welcome}}"`
+		})
+
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
+			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(w).ToNot(BeNil())
+
+			By("by calling validate")
+			err = w.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation error: invalid step in task type"))
 		})
 	})
 
@@ -205,11 +282,13 @@ task:
           - "{{env:welcome}}"`
 		})
 
-		It("create new workflow, call split nodes and run", func() {
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by calling validate")
 			err = w.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("validation error: invalid task type"))
@@ -242,11 +321,13 @@ task:
           - "{{env:welcome}}"`
 		})
 
-		It("create new workflow, call split nodes and run", func() {
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by calling validate")
 			err = w.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("validation error: invalid step type"))
@@ -279,11 +360,13 @@ task:
           - "{{env:welcome}}"`
 		})
 
-		It("create new workflow, call split nodes and run", func() {
+		It("test validate new workflow", func() {
+			By("by creating new workflow")
 			w, err := workflow.NewWorkflows(nil, logger).NewWorkflowFromText(text)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(w).ToNot(BeNil())
 
+			By("by calling validate")
 			err = w.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("validation error: invalid step list"))

@@ -53,17 +53,7 @@ func (w *Workflows) NewWorkflow(filePath string) (workflow *Workflow, err error)
 		logger.Error(err.Error(), zap.Error(err))
 		return
 	}
-	logger.Debug("parsing yaml text to workflow", zap.String("text", string(bytes)))
-	parseErr := yaml.Unmarshal(bytes, &workflow)
-	if parseErr != nil {
-		err = fmt.Errorf("error parsing yaml text: %w", parseErr)
-		logger.Error(err.Error(), zap.Error(err))
-		return
-	}
-	workflow.Tasks = w.Tasks
-	workflow.Logger = w.Logger
-	logger.Debug("successfully parsed yaml text to workflow", zap.Any("workflow", workflow))
-	return
+	return w.NewWorkflowFromText(string(bytes))
 }
 
 func (w *Workflows) NewWorkflowFromText(text string) (workflow *Workflow, err error) {
@@ -126,7 +116,7 @@ func (w *Workflow) Run() (err error) {
 			step := stepList[k].(map[string]interface{})
 			task := w.Tasks.NewTask(taskType, step, node)
 			if task == nil {
-				err = fmt.Errorf("error creating new task type as invalid task type or step type")
+				err = fmt.Errorf("error creating new task type")
 				logger.Error(err.Error(), zap.Error(err))
 				return
 			}
@@ -161,26 +151,27 @@ func (w *Workflow) Validate() (err error) {
 			switch j {
 			case string(lib.NodeAttribute):
 			case string(lib.SequentialTaskType):
-				taskType = j
 				if reflect.TypeOf(taskData[j]) != reflect.TypeOf([]interface{}{}) {
-					err = fmt.Errorf("validation error: invalid step list in task number %s with task type %s",
-						j, taskType)
+					err = fmt.Errorf("validation error: invalid step list in task type %s in task number %d",
+						j, i+1)
 					logger.Error(err.Error(), zap.Error(err))
 					return
 				}
+				taskType = j
 				stepList = taskData[j].([]interface{})
 			default:
-				err = fmt.Errorf("validation error: invalid task type %s", j)
+				err = fmt.Errorf("validation error: invalid task type %s in task number %d", j, i)
 				logger.Error(err.Error(), zap.Error(err))
 				return
 			}
 		}
-		if len(stepList) == 0 {
-			err = fmt.Errorf("validation error: no step list found for task number %d with task type %s", i+1, taskType)
-			logger.Error(err.Error(), zap.Error(err))
-			return
-		}
 		for k := range stepList {
+			if reflect.TypeOf(stepList[k]) != reflect.TypeOf(map[string]interface{}{}) {
+				err = fmt.Errorf("validation error: invalid step in task type %s in task number %d",
+					taskType, i+1)
+				logger.Error(err.Error(), zap.Error(err))
+				return
+			}
 			step := stepList[k].(map[string]interface{})
 			for l := range step {
 				switch l {
@@ -188,8 +179,8 @@ func (w *Workflow) Validate() (err error) {
 				case string(lib.PrintStepType):
 				case string(lib.ExecuteStepType):
 				default:
-					err = fmt.Errorf("validation error: invalid step type %s in task number %d with task type %s",
-						l, i+1, taskType)
+					err = fmt.Errorf("validation error: invalid step type %s for task type %s in task number %d",
+						l, taskType, i+1)
 					logger.Error(err.Error(), zap.Error(err))
 					return
 				}
