@@ -9,36 +9,6 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
 > MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
 
-## Repository map
-```
- 📌 -----------------------> you are here
-┬
-├── cmd    ----------------> contains go main starting point for roiergasias workflow cli
-│   ├── linux   -----------> contains linux amd64 executable for roiergasias workflow cli
-│   └── osx   -------------> contains mac-osx amd64 executable for roiergasias workflow cli
-├── docs   ----------------> contains documentation / images
-├── examples  
-│   ├── hello-world   -----> contains both single node and multi node split workflow example
-│   ├── machine-learning
-│   │   ├── aws   ---------> contains multi node split workflow in 2 node groups example
-│   │   └── local   -------> contains single node workflow example
-├── infra   ---------------> contains terraform scripts for infrastructure as code
-│   └── aws
-├── operator   ------------> contains kubernetes operator code for roiergasias workflow
-│   ├── api
-│   ├── config
-│   ├── controllers
-│   ├── hack
-│   └── helm   ------------> contains kubernetes operator helm chart repository
-└── pkg   -----------------> contains go packages for roiergasias workflow engine
-    ├── lib
-    ├── mocks
-    ├── steps
-    ├── tasks
-    └── workflow
-```
-
-
 ## Run "Hello world" workflow locally
 ``` SH
 # clone to a local git directory, if not already done so
@@ -60,7 +30,7 @@ chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 ## Run "Hello world" workflow via operator in kubernetes
 ### - Install [Helm](https://helm.sh/docs/intro/install/)
-### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+### - For local Kubernetes, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
 ``` SH
 # install roiergasias operator
@@ -166,4 +136,34 @@ helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias
 
 # uninstall the operator
 helm uninstall roiergasias-operator
+```
+
+
+## Repository map
+```
+ 📌 -----------------------> you are here
+┬
+├── cmd    ----------------> contains go main starting point for roiergasias workflow cli
+│   ├── linux   -----------> contains linux amd64 executable for roiergasias workflow cli
+│   └── osx   -------------> contains mac-osx amd64 executable for roiergasias workflow cli
+├── docs   ----------------> contains documentation / images
+├── examples  
+│   ├── hello-world   -----> contains both single node and multi node split workflow example
+│   ├── machine-learning
+│   │   ├── aws   ---------> contains multi node split workflow in 2 node groups example
+│   │   └── local   -------> contains single node workflow example
+├── infra   ---------------> contains terraform scripts for infrastructure as code
+│   └── aws
+├── operator   ------------> contains kubernetes operator code for roiergasias workflow
+│   ├── api
+│   ├── config
+│   ├── controllers
+│   ├── hack
+│   └── helm   ------------> contains kubernetes operator helm chart repository
+└── pkg   -----------------> contains go packages for roiergasias workflow engine
+    ├── lib
+    ├── mocks
+    ├── steps
+    ├── tasks
+    └── workflow
 ```

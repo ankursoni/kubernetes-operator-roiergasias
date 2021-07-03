@@ -19,11 +19,11 @@ pip install pandas sklearn joblib
 ### - Install [Kaggle CLI](https://github.com/Kaggle/kaggle-api)
 #### -- Make sure kaggle is configured with api key in ~/.kaggle/kaggle.json
 [Kaggle API Credentials](https://github.com/Kaggle/kaggle-api#api-credentials)
+### - For docker runs, install [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Docker](https://docs.docker.com/get-docker/)
+### - And, install [Docker Compose](https://docs.docker.com/compose/install/)
+### - For local Kubernetes, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+### - Install [Helm](https://helm.sh/docs/intro/install/)
 ### - Optionally, install [Go](https://golang.org/doc/install)
-### - Optionally, install [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Docker](https://docs.docker.com/get-docker/)
-### - Optionally, install [Docker Compose](https://docs.docker.com/compose/install/)
-### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-### - Optionally, install [Helm](https://helm.sh/docs/intro/install/)
 
 ---
 
