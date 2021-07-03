@@ -5,14 +5,14 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ankursoni/kubernetes-operator-roiergasias.svg)](https://pkg.go.dev/github.com/ankursoni/kubernetes-operator-roiergasias)
 
-&#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in June 2021.  
+&#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in July 2021.  
 > MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
 
-## Repository structure
+## Repository map
 ```
-┬ 📌 ----------------------> you are here
-│
+ 📌 -----------------------> you are here
+┬
 ├── cmd    ----------------> contains go main starting point for roiergasias workflow cli
 │   ├── linux   -----------> contains linux amd64 executable for roiergasias workflow cli
 │   └── osx   -------------> contains mac-osx amd64 executable for roiergasias workflow cli
