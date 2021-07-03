@@ -132,12 +132,12 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to run go workflow via kubernetes operator (after provisioning AWS infrastructure and creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to run go workflow via Kubernetes operator (after provisioning AWS infrastructure and creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# install the operator
+# install the Kubernetes operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
   --version v0.1.1 \
   roiergasias-operator roiergasias-operator

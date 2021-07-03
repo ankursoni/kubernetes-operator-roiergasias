@@ -19,11 +19,11 @@ pip install pandas sklearn joblib
 ### - Install [Kaggle CLI](https://github.com/Kaggle/kaggle-api)
 #### -- Make sure kaggle is configured with api key in ~/.kaggle/kaggle.json
 [Kaggle API Credentials](https://github.com/Kaggle/kaggle-api#api-credentials)
+### - For docker runs, install [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Docker](https://docs.docker.com/get-docker/)
+### - And, install [Docker Compose](https://docs.docker.com/compose/install/)
+### - For local Kubernetes, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+### - Install [Helm](https://helm.sh/docs/intro/install/)
 ### - Optionally, install [Go](https://golang.org/doc/install)
-### - Optionally, install [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Docker](https://docs.docker.com/get-docker/)
-### - Optionally, install [Docker Compose](https://docs.docker.com/compose/install/)
-### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-### - Optionally, install [Helm](https://helm.sh/docs/intro/install/)
 
 ---
 
@@ -168,7 +168,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to run go workflow via kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to run go workflow via Kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -222,7 +222,7 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 ```
 
 
-## Steps to run go workflow via kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
+## Steps to run go workflow via Kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias

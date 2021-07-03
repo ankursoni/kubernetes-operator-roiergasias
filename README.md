@@ -9,6 +9,96 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
 > MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
 
 
+## Run "Hello world" workflow locally
+``` SH
+# clone to a local git directory, if not already done so
+git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
+
+# change to the local git directory
+cd kubernetes-operator-roiergasias
+
+# set execute permissions to go binary
+chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
+
+# run the hello world workflow
+./cmd/linux/roiergasias run -f ./examples/hello-world/hello-world.yaml
+# or, for mac osx
+./cmd/osx/roiergasias run -f ./examples/hello-world/hello-world.yaml
+```
+Notice that the environment variables set globally and in previous steps are made available to subsequent steps:  
+![hello-world](docs/images/hello-world.png)
+
+
+## Run "Hello world" workflow via operator in Kubernetes
+### - Install [Helm](https://helm.sh/docs/intro/install/)
+### - For local Kubernetes, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+
+``` SH
+# install roiergasias operator
+helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
+  --version 0.1.1 \
+  roiergasias-operator roiergasias-operator
+
+# explore the contents of hello-world-kubernetes.yaml file
+cat examples/hello-world/hello-world-kubernetes.yaml
+
+# apply the manifest
+kubectl apply -f examples/hello-world/hello-world-kubernetes.yaml
+
+# browse workflow created by the manifest
+kubectl get workflow
+# should display "roiergasias-demo"
+
+# browse configmap created by the workflow
+kubectl get configmap
+# should display "roiergasias-demo-hello-world"
+
+# browse job created by the workflow
+kubectl get job
+# should display "roiergasias-demo"
+
+# browse pod created by the job
+kubectl get pod
+# should display "roiergasias-demo-<STRING>"
+
+# check pod logs for the output and wait till it is completed
+kubectl logs roiergasias-demo-<STRING_FROM_PREVIOUS_STEP>
+
+# delete the manifest
+kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
+
+# uninstall the operator (optional)
+helm uninstall roiergasias-operator
+```
+Notice that the workflow yaml file is provided to the pod as a volume - 'yaml' automatically created by the operator using a generated config map:  
+![hello-world-kubernetes](docs/images/hello-world-kubernetes.png)
+
+
+## Why use Roiergasias?
+The USP (unique selling point) of using Roiergasias workflow in Kubernetes is its ability to split workflow to run in multiple worker nodes as depicted briefly below:  
+![hello-world-multi-node](docs/images/hello-world-multi-node.png)
+
+## Run "Machine learning" workflow locally
+Follow this [README](examples/machine-learning/local/README.md)
+
+
+## Run "Machine learning" workflow in AWS
+![topology](docs/images/aws-topology.png)
+Follow this [README](examples/machine-learning/aws/README.md)
+
+
+## Install Roiergasias operator in Kubernetes
+``` SH
+# install the operator
+helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
+  --version v0.1.1 \
+  roiergasias-operator roiergasias-operator
+
+# uninstall the operator
+helm uninstall roiergasias-operator
+```
+
+
 ## Repository map
 ```
  📌 -----------------------> you are here
@@ -36,134 +126,4 @@ This **kubernetes operator** is meant to address a fundamental requirement of an
     ├── steps
     ├── tasks
     └── workflow
-```
-
-
-## Run "Hello world" workflow locally
-``` SH
-# clone to a local git directory, if not already done so
-git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
-
-# change to the local git directory
-cd kubernetes-operator-roiergasias
-
-# set execute permissions to go binary
-chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
-
-# run the hello world workflow
-./cmd/linux/roiergasias run -f ./examples/hello-world/hello-world.yaml
-# or, for mac osx
-./cmd/osx/roiergasias run -f ./examples/hello-world/hello-world.yaml
-```
-![hello-world](docs/images/hello-world.png)
-
-
-## Run "Hello world" workflow via operator in kubernetes
-### - Install [Helm](https://helm.sh/docs/intro/install/)
-### - Optionally, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-
-``` SH
-# install roiergasias operator
-helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.1 \
-  roiergasias-operator roiergasias-operator
-
-# read the following example hello-world-kubernetes.yaml file
-cat examples/hello-world/hello-world-kubernetes.yaml
----
-apiVersion: batch.ankursoni.github.io/v1
-kind: Workflow
-metadata:
-  name: roiergasias-demo
-spec:
-  workflowYAML:
-    name: hello-world
-    yaml: |
-      version: 0.1
-
-      environment:
-        - welcome: "Welcome to the demo workflow!"
-
-      task:
-        - sequential:
-            - print:
-                - "Hello"
-                - "World!"
-            - print:
-                - "Hi"
-                - "Universe!"
-            - environment:
-                - greeting: "Warm greetings!"
-
-        - sequential:
-            - print:
-                - "{{env:welcome}}"
-            - execute:
-                - "echo {{env:greeting}}"
-            - environment:
-                - greeting: "Warm greetings again!"
-
-        - sequential:
-            - execute:
-                - "echo {{env:greeting}}"
-
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: roiergasias
-              image: docker.io/ankursoni/roiergasias-operator:workflow
-              command: ["/root/roiergasias", "run", "--file=/root/hello-world/hello-world.yaml"]
-              volumeMounts:
-                # volume - 'yaml' is automatically created by the operator using a generated configMap
-                - name: yaml
-                  mountPath: /root/hello-world
----
-
-# apply the manifest
-kubectl apply -f examples/hello-world/hello-world-kubernetes.yaml
-
-# browse workflow created by the manifest
-kubectl get workflow
-
-# browse job created by the workflow
-kubectl get job
-
-# browse pod created by the job
-kubectl get pod
-
-# check pod logs for the output and wait till it is completed
-kubectl logs roiergasias-demo-<STRING_FROM_PREVIOUS_STEP>
-
-# delete the manifest
-kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
-
-# delete the roiergasias namespace (optional)
-kubectl delete ns roiergasias
-
-# uninstall the operator (optional)
-helm uninstall roiergasias-operator
-```
-
-
-## Run "Machine learning" workflow locally
-Follow this [README](examples/machine-learning/local/README.md)
-
-
-## Run "Machine learning" workflow in AWS
-![topology](docs/images/aws-topology.png)
-Follow this [README](examples/machine-learning/aws/README.md)
-
-
-## Install Roiergasias operator
-``` SH
-# install the operator
-helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version v0.1.1 \
-  roiergasias-operator roiergasias-operator
-
-# uninstall the operator
-helm uninstall roiergasias-operator
 ```
