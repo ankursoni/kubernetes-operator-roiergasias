@@ -92,7 +92,7 @@ Notice the sequence of actions:
 2. Wait for job 1 to complete
 3. Create config map 2 + job 2 for split workflow 2 on "node2"
 4. Wait for job 2 to complete
-5. Create config map 3 + job 3 for split workflow 2 on "node2"
+5. Create config map 3 + job 3 for split workflow 3 on "node2"
 6. Wait for job 3 to complete  
 ```
 For more details, follow this [README](examples/hello-world/README.md)
