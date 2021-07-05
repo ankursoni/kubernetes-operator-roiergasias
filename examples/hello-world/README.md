@@ -33,6 +33,7 @@ chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 ./cmd/osx/roiergasias run -f ./examples/hello-world/hello-world.yaml
 ```
 Notice that the environment variables set globally and in previous steps are made available to subsequent steps:  
+
 ![hello-world](../../docs/images/hello-world.png)
 
 
@@ -53,6 +54,7 @@ chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 ./cmd/osx/roiergasias split -f ./examples/hello-world/hello-world-multi-node.yaml
 ```
 Notice that the environment variables collected from previous tasks that are carried forward to subsequent tasks in the split represented by dotted arrows:  
+
 ![hello-world-multi-node](../../docs/images/hello-world-multi-node.png)
 
 
@@ -106,6 +108,7 @@ kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
 helm uninstall roiergasias-operator
 ```
 Notice that the workflow yaml file is provided to the pod as a volume - 'yaml' automatically created by the operator using a generated config map:  
+
 ![hello-world-kubernetes](../../docs/images/hello-world-kubernetes.png)
 
 
@@ -179,3 +182,13 @@ kubectl delete -f examples/hello-world-multi-node-kubernetes.yaml
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
+Notice the sequence of actions:
+```text
+1. Create config map 1 + job 1 for split workflow 1 on "node1"
+2. Wait for job 1 to complete
+3. Create config map 2 + job 2 for split workflow 2 on "node2"
+4. Wait for job 2 to complete
+5. Create config map 3 + job 3 for split workflow 2 on "node2"
+6. Wait for job 3 to complete  
+```
+![hello-world-multi-node-kubernetes](../../docs/images/hello-world-multi-node-kubernetes.png)

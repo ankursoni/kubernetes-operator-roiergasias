@@ -1,7 +1,11 @@
 # roi ergasias
 > [roí ergasías](https://translate.google.com/?sl=en&tl=el&text=workflow&op=translate) as pronounced in greek means workflow.
 
-This **kubernetes operator** is meant to address a fundamental requirement of any data science / machine learning project running their pipelines on Kubernetes - which is to quickly provision a declarative data pipeline (on demand) for their various project needs using simple kubectl commands. Basically, implementing the concept of **No Ops**.
+This **kubernetes operator** is meant to address a fundamental requirement of any data science / machine learning project 
+running their pipelines on Kubernetes - which is to quickly provision a declarative data pipeline (on demand) for their 
+various project needs using simple kubectl commands. Basically, implementing the concept of **No Ops**.  
+The fundamental principle is to utilise best of docker, kubernetes and programming language features to run a workflow 
+with minimal workflow definition syntax.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ankursoni/kubernetes-operator-roiergasias.svg)](https://pkg.go.dev/github.com/ankursoni/kubernetes-operator-roiergasias)
 
@@ -26,6 +30,7 @@ chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 ./cmd/osx/roiergasias run -f ./examples/hello-world/hello-world.yaml
 ```
 Notice that the environment variables set globally and in previous steps are made available to subsequent steps:  
+
 ![hello-world](docs/images/hello-world.png)
 
 
@@ -71,12 +76,27 @@ kubectl delete -f examples/hello-world/hello-world-kubernetes.yaml
 helm uninstall roiergasias-operator
 ```
 Notice that the workflow yaml file is provided to the pod as a volume - 'yaml' automatically created by the operator using a generated config map:  
+
 ![hello-world-kubernetes](docs/images/hello-world-kubernetes.png)
 
 
 ## Why use Roiergasias?
 The USP (unique selling point) of using Roiergasias workflow in Kubernetes is its ability to split workflow to run in multiple worker nodes as depicted briefly below:  
+
 ![hello-world-multi-node](docs/images/hello-world-multi-node.png)
+
+![hello-world-multi-node-kubernetes](docs/images/hello-world-multi-node-kubernetes.png)
+Notice the sequence of actions:
+```text
+1. Create config map 1 + job 1 for split workflow 1 on "node1"
+2. Wait for job 1 to complete
+3. Create config map 2 + job 2 for split workflow 2 on "node2"
+4. Wait for job 2 to complete
+5. Create config map 3 + job 3 for split workflow 2 on "node2"
+6. Wait for job 3 to complete  
+```
+For more details, follow this [README](examples/hello-world/README.md)
+
 
 ## Run "Machine learning" workflow locally
 Follow this [README](examples/machine-learning/local/README.md)
