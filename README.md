@@ -77,7 +77,7 @@ helm uninstall roiergasias-operator
 ```
 Notice that the workflow yaml file is provided to the pod as a volume - 'yaml' automatically created by the operator using a generated config map:  
 
-![hello-world-kubernetes](docs/images/hello-world-kubernetes.png)
+![hello-world-kubernetes](docs/images/hello-world-kubernetes.gif)
 
 
 ## Why use Roiergasias?
@@ -85,7 +85,7 @@ The USP (unique selling point) of using Roiergasias workflow in Kubernetes is it
 
 ![hello-world-multi-node](docs/images/hello-world-multi-node.png)
 
-![hello-world-multi-node-kubernetes](docs/images/hello-world-multi-node-kubernetes.png)
+![hello-world-multi-node-kubernetes](docs/images/hello-world-multi-node-kubernetes.gif)
 Notice the sequence of actions:
 ```text
 1. Create config map 1 + job 1 for split workflow 1 on "node1"
