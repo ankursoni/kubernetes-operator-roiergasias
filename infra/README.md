@@ -1,5 +1,7 @@
+## For more details, follow this [README](../examples/machine-learning/aws/README.md)
+
 ## Repository map
-```
+```text
 ┬
 ├── ...
 │   📌 -----------------------> you are here

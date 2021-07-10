@@ -21,7 +21,7 @@ https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-
 
 ![aws-topology](../../../docs/images/aws-infrastructure.png)  
 ## Provision AWS infrastructure
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
@@ -81,7 +81,7 @@ aws eks update-kubeconfig --region <REGION> --name <PREFIX>-<ENVIRONMENT>-eks01
 
 
 ## Build docker image for AWS
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then
@@ -102,7 +102,7 @@ docker build -t roiergasias:aws -f cmd/Dockerfile-aws cmd
 
 
 ## Push docker image for AWS to docker hub (after building docker image for AWS as mentioned above)
-``` SH
+```shell
 # re-tag local docker image
 docker tag roiergasias:aws docker.io/<REPOSITORY>/roiergasias:aws
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
@@ -120,7 +120,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:aws
 
 
 ## Create Kubernetes secret for docker hub credentials (after pushing docker image for AWS as mentioned above)
-``` SH
+```shell
 # create docker hub registry credentials (for pulling docker image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
   --version 3.0.0 \
@@ -134,7 +134,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 
 
 ## Run workflow via Kubernetes operator (after provisioning AWS infrastructure and creating kubernetes secret for docker hub credentials as mentioned above)
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
@@ -230,7 +230,7 @@ Notice the sequence of actions:
 
 
 ## De-provision AWS infrastructure
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then

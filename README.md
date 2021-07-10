@@ -14,7 +14,7 @@ with minimal workflow definition syntax.
 
 
 ## Run "Hello world" workflow locally
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 
@@ -38,7 +38,7 @@ Notice that the environment variables set globally and in previous steps are mad
 ### - Install [Helm](https://helm.sh/docs/intro/install/)
 ### - For local Kubernetes, install [Kubernetes by Docker Desktop](https://docs.docker.com/desktop/kubernetes/) or [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
-``` SH
+```shell
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
   --version 0.1.1 \
@@ -97,21 +97,27 @@ Notice the sequence of actions:
 ```
 For more details, follow this [README](examples/hello-world/README.md)
 
+---
 
 ## Run "Machine learning" workflow locally
 ![machine-learning-overview-local](docs/images/machine-learning-overview-local.png)  
 ![machine-learning-workflow-kubernetes](docs/images/machine-learning-workflow-kubernetes.png)  
-Follow this [README](examples/machine-learning/local/README.md)
+For more details, follow this [README](examples/machine-learning/local/README.md)
 
 
 ## Run "Machine learning" workflow in AWS
 ![aws-topology](docs/images/aws-infrastructure.png)  
 ![topology](docs/images/aws-topology.gif)  
-Follow this [README](examples/machine-learning/aws/README.md)
+For more details, follow this [README](examples/machine-learning/aws/README.md)
+
+---
+
+## Getting started with Roiergasias workflow
+For workflow yaml file syntax and cli command syntax, follow this [README](cmd/README.md)
 
 
 ## Install Roiergasias operator in Kubernetes
-``` SH
+```shell
 # install the operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
   --version v0.1.1 \
@@ -121,9 +127,10 @@ helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias
 helm uninstall roiergasias-operator
 ```
 
+---
 
 ## Repository map
-```
+```text
  📌 -----------------------> you are here
 ┬
 ├── cmd    ----------------> contains go main starting point for roiergasias workflow cli

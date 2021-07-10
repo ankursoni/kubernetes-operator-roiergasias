@@ -11,7 +11,7 @@ https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-
 
 ### - Install [Python 3](https://www.python.org/downloads/)
 Also, install the following *pip* packages:
-``` SH
+```shell
 pip install pandas sklearn joblib
 # or,
 # pip3 install pandas sklearn joblib
@@ -36,14 +36,14 @@ pip install pandas sklearn joblib
 5. [Manually run workflow via Kubernetes operator](#5-run-workflow-via-kubernetes-operator-after-pushing-the-docker-image-to-docker-hub-and-creating-kubernetes-secret-for-docker-hub-credentials-as-mentioned-above)
 
 ## Clone to a local git directory
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 ```
 
 
 ## 1. Manually run python scripts
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
@@ -78,7 +78,7 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 
 
 ## 2. Manually run roiergasias cli
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then
@@ -108,7 +108,7 @@ Output
 
 
 ## Build docker image for local
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then
@@ -126,7 +126,7 @@ docker build -t roiergasias:local -f cmd/Dockerfile-local cmd
 
 
 ## 3. Manually run roiergasias cli via docker compose (after building docker image for local as mentioned above)
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
@@ -148,7 +148,7 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 
 
 ## Push docker image for local to docker hub (after building docker image for local as mentioned above)
-``` SH
+```shell
 # re-tag local docker image
 docker tag roiergasias:local docker.io/<REPOSITORY>/roiergasias:local
 # where, <REPOSITORY> is the docker hub repository name or docker hub username, for e.g.,
@@ -166,7 +166,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:local
 
 
 ## Create Kubernetes secret for docker hub credentials (after pushing docker image to docker hub as mentioned above)
-``` SH
+```shell
 # create docker hub registry credentials (for pulling docker image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
   --version 3.0.0 \
@@ -180,7 +180,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 
 
 ## 4. Run workflow via Kubernetes job (after creating kubernetes secret for docker hub credentials as mentioned above)
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then
@@ -234,7 +234,7 @@ rm weatherAUS.csv processed-weatherAUS.csv ml-model.joblib
 
 
 ## 5. Run workflow via Kubernetes operator (after pushing the docker image to docker hub and creating kubernetes secret for docker hub credentials as mentioned above)
-``` SH
+```shell
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 # or, if coming from previous steps then

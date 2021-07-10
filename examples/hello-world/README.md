@@ -17,7 +17,7 @@ The 2 types of examples are:
 
 
 ## Run single node workflow locally
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 
@@ -38,7 +38,7 @@ Notice that the environment variables set globally and in previous steps are mad
 
 
 ## Test multi node workflow split locally
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 
@@ -64,7 +64,7 @@ Notice that the environment variables collected from previous tasks that are car
 
 
 ## Run single node workflow via operator in Kubernetes
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 
@@ -113,7 +113,7 @@ Notice that the workflow yaml file is provided to the pod as a volume - 'yaml' a
 
 
 ## Run multi node workflow via operator in Kubernetes
-``` SH
+```shell
 # clone to a local git directory, if not already done so
 git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 
