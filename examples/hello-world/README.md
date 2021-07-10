@@ -182,7 +182,7 @@ kubectl delete -f examples/hello-world-multi-node-kubernetes.yaml
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
-![hello-world-multi-node-kubernetes](../../docs/images/hello-world-multi-node-kubernetes.png)
+![hello-world-multi-node-kubernetes](../../docs/images/hello-world-multi-node-kubernetes.png)  
 Notice the sequence of actions:
 ```text
 1. Create config map 1 + job 1 for split workflow 1 on "node1"

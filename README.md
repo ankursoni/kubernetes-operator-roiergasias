@@ -85,7 +85,7 @@ The USP (unique selling point) of using Roiergasias workflow in Kubernetes is it
 
 ![hello-world-multi-node](docs/images/hello-world-multi-node.png)
 
-![hello-world-multi-node-kubernetes](docs/images/hello-world-multi-node-kubernetes.gif)
+![hello-world-multi-node-kubernetes](docs/images/hello-world-multi-node-kubernetes.gif)  
 Notice the sequence of actions:
 ```text
 1. Create config map 1 + job 1 for split workflow 1 on "node1"
@@ -103,7 +103,7 @@ Follow this [README](examples/machine-learning/local/README.md)
 
 
 ## Run "Machine learning" workflow in AWS
-![topology](docs/images/aws-topology.png)
+![topology](docs/images/aws-topology.gif)  
 Follow this [README](examples/machine-learning/aws/README.md)
 
 
