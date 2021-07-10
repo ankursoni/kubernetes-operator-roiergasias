@@ -113,6 +113,10 @@ For more details, follow this [README](examples/machine-learning/aws/README.md)
 ---
 
 ## Getting started with Roiergasias workflow
+Core features of Roiergasias workflow:
+1. It is cloud agnostic as it can run in any Kubernetes in cloud or local.  
+2. It is also language agnostic as it derives the capabilities of the system where it is running be it container or virtual machine.  
+
 For workflow yaml file syntax and cli command syntax, follow this [README](cmd/README.md)
 
 
