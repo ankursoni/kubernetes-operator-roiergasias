@@ -73,7 +73,7 @@ cd kubernetes-operator-roiergasias
 
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.1 \
+  --version v0.1.2 \
   roiergasias-operator roiergasias-operator
 
 # explore the contents of hello-world-kubernetes.yaml file
@@ -122,7 +122,7 @@ cd kubernetes-operator-roiergasias
 
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.1 \
+  --version v0.1.2 \
   roiergasias-operator roiergasias-operator
 
 # explore the contents of hello-world-multi-node-kubernetes.yaml file

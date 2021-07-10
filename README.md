@@ -9,9 +9,6 @@ with minimal workflow definition syntax.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ankursoni/kubernetes-operator-roiergasias.svg)](https://pkg.go.dev/github.com/ankursoni/kubernetes-operator-roiergasias)
 
-&#x1F534; NOT OFFICIALLY RELEASED YET - first version that supports split workflow jobs to be launched in July 2021.  
-> MAIN BRANCH WORKS CORRECTLY AT THE MOMENT
-
 
 ## Run "Hello world" workflow locally
 ```shell
@@ -41,7 +38,7 @@ Notice that the environment variables set globally and in previous steps are mad
 ```shell
 # install roiergasias operator
 helm install --repo https://github.com/ankursoni/kubernetes-operator-roiergasias/raw/main/operator/helm/ \
-  --version 0.1.1 \
+  --version v0.1.2 \
   roiergasias-operator roiergasias-operator
 
 # explore the contents of hello-world-kubernetes.yaml file
@@ -104,6 +101,7 @@ For more details, follow this [README](examples/hello-world/README.md)
 ![machine-learning-workflow-kubernetes](docs/images/machine-learning-workflow-kubernetes.png)  
 For more details, follow this [README](examples/machine-learning/local/README.md)
 
+---
 
 ## Run "Machine learning" workflow in AWS
 ![aws-topology](docs/images/aws-infrastructure.png)  
