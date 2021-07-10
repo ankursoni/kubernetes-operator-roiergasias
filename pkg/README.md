@@ -1,3 +1,10 @@
+# Roiergasias workflow
+
+
+## Getting started with Roiergasias workflow
+For workflow yaml file syntax and command syntax, follow this [README](../cmd/README.md)
+
+
 ## Repository map
 ```
 ┬
