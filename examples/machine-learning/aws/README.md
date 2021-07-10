@@ -11,7 +11,7 @@ https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-
 
 ### - Install [Kaggle CLI](https://github.com/Kaggle/kaggle-api)
 #### -- Make sure kaggle is configured with api key in ~/.kaggle/kaggle.json
-[Kaggle API Credentials](https://github.com/Kaggle/kaggle-api#api-credentials)
+#### [Kaggle API Credentials](https://github.com/Kaggle/kaggle-api#api-credentials)
 ### - Install [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 ### - Install [Helm](https://helm.sh/docs/intro/install/)
 ### - Install [Kubectl](https://kubernetes.io/docs/tasks/tools/)
@@ -19,7 +19,8 @@ https://www.kaggle.com/ilyapozdnyakov/rain-in-australia-precision-recall-curves-
 
 ---
 
-## Steps to provision AWS infrastructure
+![aws-topology](../../../docs/images/aws-infrastructure.png)  
+## Provision AWS infrastructure
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -79,7 +80,7 @@ aws eks update-kubeconfig --region <REGION> --name <PREFIX>-<ENVIRONMENT>-eks01
 ```
 
 
-## Steps to build docker image for AWS
+## Build docker image for AWS
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -100,7 +101,7 @@ docker build -t roiergasias:aws -f cmd/Dockerfile-aws cmd
 ```
 
 
-## Steps to push docker image for AWS to docker hub (after building docker image for AWS as mentioned above)
+## Push docker image for AWS to docker hub (after building docker image for AWS as mentioned above)
 ``` SH
 # re-tag local docker image
 docker tag roiergasias:aws docker.io/<REPOSITORY>/roiergasias:aws
@@ -118,7 +119,7 @@ docker push docker.io/<REPOSITORY>/roiergasias:aws
 > NOTE: Make sure you have changed the above mentioned docker hub repository as **private** because it contains your kaggle api key credentials and aws cli credentials
 
 
-## Steps to create kubernetes secret for docker hub credentials (after pushing docker image for AWS as mentioned above)
+## Create Kubernetes secret for docker hub credentials (after pushing docker image for AWS as mentioned above)
 ``` SH
 # create docker hub registry credentials (for pulling docker image pushed previously)
 helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets imagepullsecrets \
@@ -132,7 +133,7 @@ helm upgrade -i --repo https://gabibbo97.github.io/charts imagepullsecrets image
 ```
 
 
-## Steps to run go workflow via Kubernetes operator (after provisioning AWS infrastructure and creating kubernetes secret for docker hub credentials as mentioned above)
+## Run workflow via Kubernetes operator (after provisioning AWS infrastructure and creating kubernetes secret for docker hub credentials as mentioned above)
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias
@@ -216,9 +217,19 @@ kubectl delete ns roiergasias
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
+![aws-topology](../../../docs/images/aws-topology.png)  
+Notice the sequence of actions:
+```text
+1. Create config map 1 + job 1 for split workflow - "process data" on "node1"
+2. Wait for job 1 to complete
+3. Create config map 2 + job 2 for split workflow - "train model" on "node2"
+4. Wait for job 2 to complete
+5. Create config map 3 + job 3 for split workflow - "evaluate model" on "node2"
+6. Wait for job 3 to complete  
+```
 
 
-## Steps to de-provision AWS infrastructure
+## De-provision AWS infrastructure
 ``` SH
 # change to the local git directory
 cd kubernetes-operator-roiergasias

@@ -21,7 +21,7 @@ git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# set execute permissions to go binary
+# set execute permissions to roiergasias cli
 chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # run the hello world workflow
@@ -99,10 +99,13 @@ For more details, follow this [README](examples/hello-world/README.md)
 
 
 ## Run "Machine learning" workflow locally
+![machine-learning-overview-local](docs/images/machine-learning-overview-local.png)  
+![machine-learning-workflow-kubernetes](docs/images/machine-learning-workflow-kubernetes.png)  
 Follow this [README](examples/machine-learning/local/README.md)
 
 
 ## Run "Machine learning" workflow in AWS
+![aws-topology](docs/images/aws-infrastructure.png)  
 ![topology](docs/images/aws-topology.gif)  
 Follow this [README](examples/machine-learning/aws/README.md)
 

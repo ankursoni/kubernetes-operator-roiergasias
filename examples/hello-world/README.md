@@ -24,7 +24,7 @@ git clone https://github.com/ankursoni/kubernetes-operator-roiergasias.git
 # change to the local git directory
 cd kubernetes-operator-roiergasias
 
-# set execute permissions to go binary
+# set execute permissions to roiergasias cli
 chmod +x cmd/linux/roiergasias cmd/osx/roiergasias
 
 # run the workflow
