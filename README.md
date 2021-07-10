@@ -108,6 +108,15 @@ For more details, follow this [README](examples/machine-learning/local/README.md
 ## Run "Machine learning" workflow in AWS
 ![aws-topology](docs/images/aws-infrastructure.png)  
 ![topology](docs/images/aws-topology.gif)  
+Notice the sequence of actions:
+```text
+1. Create config map 1 + job 1 for split workflow - "process data" on "node1"
+2. Wait for job 1 to complete
+3. Create config map 2 + job 2 for split workflow - "train model" on "node2"
+4. Wait for job 2 to complete
+5. Create config map 3 + job 3 for split workflow - "evaluate model" on "node2"
+6. Wait for job 3 to complete  
+```
 For more details, follow this [README](examples/machine-learning/aws/README.md)
 
 ---
@@ -117,7 +126,7 @@ Core features of Roiergasias workflow:
 1. It is cloud agnostic as it can run in any Kubernetes in cloud or local.  
 2. It is also language agnostic as it derives the capabilities of the system where it is running be it container or virtual machine.  
 
-For workflow yaml file syntax and cli command syntax, follow this [README](cmd/README.md)
+For workflow yaml file syntax and command syntax, follow this [README](cmd/README.md)
 
 ---
 
