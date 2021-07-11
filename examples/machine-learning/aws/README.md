@@ -217,6 +217,8 @@ kubectl delete ns roiergasias
 # uninstall the operator (optional)
 helm uninstall roiergasias-operator
 ```
+![machine-learning-aws-kubernetes](../../../docs/images/machine-learning-aws-kubernetes.png)  
+
 ![aws-topology](../../../docs/images/aws-topology.png)  
 Notice the sequence of actions:
 ```text
