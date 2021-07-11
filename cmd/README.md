@@ -33,6 +33,7 @@ task:
 > ```
 For details on an example, follow this [README](../examples/hello-world/README.md)
 
+
 ## Command line syntax
 ```shell
 # clone to a local git directory, if not already done so
@@ -93,6 +94,52 @@ Help Options:
 ---
 output
 ```
+
+
+## Workflow custom resource (against CRD) syntax in Kubernetes
+```yaml
+apiVersion: batch.ankursoni.github.io/v1
+kind: Workflow
+metadata:
+  name: roiergasias-demo
+spec:
+  workflowYAML:
+    name: <workflow-name>
+    yaml: |
+      version: 0.1
+      
+      environment: # global environment
+        - <variable name>: <variable value>
+      
+      task:
+        - node: <node label> # node is optional and is used to match with kubernetes node having label - node.roiergasias=<node label>
+          sequential:
+            - <step type 1>:  # currently supported types - print, execute or environment
+                - <step 1 argument 1> # can contain {{env:<variable name>}} to resolve environment variables
+                - <step 1 argument 2>
+                - <step 1 argument 3>
+                - ...
+            - <step type 2>:
+                - <step 2 argument 1>
+                - ...
+            - ...
+        - ...
+
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: roiergasias
+              image: docker.io/ankursoni/roiergasias-operator:workflow # or your own custom docker image
+              command: ["/root/roiergasias", "run", "--file=/root/<workflow-name>/<workflow-name>.yaml"]
+              volumeMounts:
+                # volume - 'yaml' is automatically created by the operator using a generated configMap
+                - name: yaml
+                  mountPath: /root/<workflow-name>
+```
+For details on an example, follow this [README](../examples/hello-world/README.md)
 
 
 ## Install Roiergasias operator in Kubernetes
